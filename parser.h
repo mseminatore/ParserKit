@@ -2,7 +2,7 @@
 #define __PARSER_H
 
 #include "lexer.h"
-#include "SymbolTable.h"
+#include "symboltable.h"
 
 //
 class BaseParser

@@ -1,6 +1,6 @@
 #include <list>
 #include <map>
-#include "SymbolTable.h"
+#include "symboltable.h"
 
 //
 //
