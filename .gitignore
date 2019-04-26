@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# VC++ solutions
+*.sln
+*.vcxproj
+*.filters
+*.db
+*.opendb
+/examples/**/Debug
+/examples/**/.vs
+

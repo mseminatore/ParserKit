@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <list>
 #include <map>
 #include "symboltable.h"

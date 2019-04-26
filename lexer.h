@@ -69,7 +69,7 @@ union YYSTYPE
 //
 //
 //
-class CLexer
+class LexicalAnalzyer
 {
 protected:
 	struct FDNode
@@ -110,8 +110,8 @@ protected:
 	TokenTableMap m_tokenTable;
 
 public:
-	CLexer(TokenTable *atokenTable);
-	virtual ~CLexer();
+	LexicalAnalzyer(TokenTable *atokenTable);
+	virtual ~LexicalAnalzyer();
 
 	const char *GetCurrentSourceText() { return m_szCurrentSourceLineText; }
 	void ClearCurrentSourceText()		{ m_szCurrentSourceLineText[0] = 0; }

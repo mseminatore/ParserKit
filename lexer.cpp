@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <assert.h>
+#include <string>
+#include <map>
 #include "lexer.h"
-#include "parser.h"
+#include "baseparser.h"
 
 //
 static const char *_internalTokenLexemes[] = 
@@ -26,7 +29,7 @@ static const char *_internalTokenLexemes[] =
 //======================================================================
 //
 //======================================================================
-CLexer::CLexer(TokenTable *aTokenTable)
+LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable)
 {
 	assert(aTokenTable);
 
@@ -45,7 +48,7 @@ CLexer::CLexer(TokenTable *aTokenTable)
 
 	m_iCurrentSourceLineIndex = -1;
 
-	for (int i = 0; i < ARRAYSIZE(m_fdStack); i++)
+	for (int i = 0; i < ARRAY_SIZE(m_fdStack); i++)
 	{
 		m_fdStack[i].fdDocument = NULL;
 		m_fdStack[i].pTextData = NULL;
@@ -58,7 +61,7 @@ CLexer::CLexer(TokenTable *aTokenTable)
 }
 
 //
-CLexer::~CLexer()
+LexicalAnalzyer::~LexicalAnalzyer()
 {
 	for (int i = 0; i < ARRAYSIZE(m_fdStack); i++)
 	{
@@ -79,7 +82,7 @@ CLexer::~CLexer()
 //======================================================================
 //
 //======================================================================
-int CLexer::GetChar()
+int LexicalAnalzyer::GetChar()
 {
 	m_fdStack[m_iCurrentFD].column++;
 
@@ -102,7 +105,7 @@ int CLexer::GetChar()
 //======================================================================
 //
 //======================================================================
-int CLexer::UnGetChar(int c)
+int LexicalAnalzyer::UnGetChar(int c)
 {
 	m_fdStack[m_iCurrentFD].column--;
 
@@ -116,27 +119,18 @@ int CLexer::UnGetChar(int c)
 //
 //
 //
-void CLexer::yyerror(const char *s)
+void LexicalAnalzyer::yyerror(const char *s)
 {
-	#ifdef _DEBUG
-		OutputDebugString(s);
-	#endif
-
 	puts(s);
 	fflush(stdout);
-//	assert(false);
 	exit(-1);
 }
 
 //
 //
 //
-void CLexer::yywarning(const char *s)
+void LexicalAnalzyer::yywarning(const char *s)
 {
-	#ifdef _DEBUG
-		OutputDebugString(s);
-	#endif
-
 	puts(s);
 	fflush(stdout);
 }
@@ -144,7 +138,7 @@ void CLexer::yywarning(const char *s)
 //
 //
 //
-bool CLexer::Init(BaseParser *pParser, YYSTYPE *ayylval)
+bool LexicalAnalzyer::Init(BaseParser *pParser, YYSTYPE *ayylval)
 {
 	m_pParser = pParser;
 	m_yylval = ayylval;
@@ -154,7 +148,7 @@ bool CLexer::Init(BaseParser *pParser, YYSTYPE *ayylval)
 //
 //
 //
-void CLexer::CaseSensitive(bool onoff /*= true*/)
+void LexicalAnalzyer::CaseSensitive(bool onoff /*= true*/)
 {
 	compare_function	= (onoff) ? strcmp : _stricmp;
 	m_bCaseInsensitive	= onoff;
@@ -163,7 +157,7 @@ void CLexer::CaseSensitive(bool onoff /*= true*/)
 //===============================================================
 //
 //===============================================================
-const char *CLexer::GetLexemeFromToken(int token)
+const char *LexicalAnalzyer::GetLexemeFromToken(int token)
 {
 	// look for single char tokens
 	if (token < 256)
@@ -185,7 +179,7 @@ const char *CLexer::GetLexemeFromToken(int token)
 //======================================================================
 //
 //======================================================================
-int CLexer::PopFile()
+int LexicalAnalzyer::PopFile()
 {
 	// if we were processing a file, close it
 	if (m_fdStack[m_iCurrentFD].fdDocument)
@@ -235,7 +229,7 @@ int CLexer::PopFile()
 }
 
 // this is a no-op  meant to be overridden in derived classes
-void CLexer::FreeData(LPVOID pUserData)
+void LexicalAnalzyer::FreeData(void *pUserData)
 {
 	if (pUserData)
 		assert(false);
@@ -245,7 +239,7 @@ void CLexer::FreeData(LPVOID pUserData)
 // Begin processing the given file, pushing the current file onto the
 // file descriptor stack.
 //======================================================================
-int CLexer::SetFile(const char *theFile)
+int LexicalAnalzyer::SetFile(const char *theFile)
 {
 	assert(theFile);
 
@@ -275,7 +269,7 @@ int CLexer::SetFile(const char *theFile)
 //======================================================================
 //
 //======================================================================
-int CLexer::SetData(char *theData, const char *fileName, LPVOID pUserData)
+int LexicalAnalzyer::SetData(char *theData, const char *fileName, void *pUserData)
 {
 	assert(theData);
 
@@ -303,7 +297,7 @@ int CLexer::SetData(char *theData, const char *fileName, LPVOID pUserData)
 //
 //
 //
-int CLexer::GetToken()
+int LexicalAnalzyer::GetToken()
 {
 	// TODO - implement
 	return 0;
@@ -312,7 +306,7 @@ int CLexer::GetToken()
 //======================================================================
 // valid characters for Identifiers
 //======================================================================
-bool CLexer::isidval(int c)
+bool LexicalAnalzyer::isidval(int c)
 {
 	// removed: c == '.' || c == '!' || c == '&' || ((char)c) == '�'
 	if (isalnum(c) || c == '_')
@@ -324,13 +318,13 @@ bool CLexer::isidval(int c)
 //======================================================================
 // characters which are considered to be whitespace
 //======================================================================
-bool CLexer::iswhitespace(int c)
+bool LexicalAnalzyer::iswhitespace(int c)
 {
 	return (c == ' ' || c == '\t' || c == '\n' || c == '\r') ? true : false;
 }
 
 // skip any leading WS
-int CLexer::SkipLeadingWhiteSpace()
+int LexicalAnalzyer::SkipLeadingWhiteSpace()
 {
 	int chr;
 
@@ -351,7 +345,7 @@ int CLexer::SkipLeadingWhiteSpace()
 //
 //
 //
-int CLexer::backslash(int c)
+int LexicalAnalzyer::backslash(int c)
 {
 	static char translation_tab[] = "b\bf\fn\nr\rt\t";
 
@@ -368,7 +362,7 @@ int CLexer::backslash(int c)
 //
 //
 //
-void CLexer::skipToEOL(void)
+void LexicalAnalzyer::skipToEOL(void)
 {
 	int c;
 
@@ -382,7 +376,7 @@ void CLexer::skipToEOL(void)
 //
 //
 //
-void CLexer::cstyle_comment(void)
+void LexicalAnalzyer::cstyle_comment(void)
 {
 	int c;
 
@@ -400,7 +394,7 @@ void CLexer::cstyle_comment(void)
 //
 //
 //
-int CLexer::follow(int expect, int ifyes, int ifno)
+int LexicalAnalzyer::follow(int expect, int ifyes, int ifno)
 {
 	int chr;
 
@@ -415,7 +409,7 @@ int CLexer::follow(int expect, int ifyes, int ifno)
 //
 //
 //
-int CLexer::getNumber()
+int LexicalAnalzyer::getNumber()
 {
 	int c;
 	char buf[DEFAULT_NUM_BUF];
@@ -462,7 +456,7 @@ int CLexer::getNumber()
 //
 //
 //
-int CLexer::getCharLiteral()
+int LexicalAnalzyer::getCharLiteral()
 {
 	int c;
 	
@@ -478,7 +472,7 @@ int CLexer::getCharLiteral()
 //
 //
 //
-int CLexer::getStringLiteral()
+int LexicalAnalzyer::getStringLiteral()
 {
 	SymbolEntry *sym;
 	int c;
@@ -520,7 +514,7 @@ int CLexer::getStringLiteral()
 //
 //
 //
-int CLexer::getKeyword()
+int LexicalAnalzyer::getKeyword()
 {
 	return 0;
 }
@@ -528,7 +522,7 @@ int CLexer::getKeyword()
 //======================================================================
 // Generic Lexical analyzer routine
 //======================================================================
-int CLexer::yylex()
+int LexicalAnalzyer::yylex()
 {
 	int chr;
 	char buf[DEFAULT_TEXT_BUF];
