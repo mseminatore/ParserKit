@@ -11,5 +11,6 @@ public:
 	virtual ~JSONParser();
 	
 	int DoToken(int token) override;
-
+	void DoObject();
+	void DoArray();
 };

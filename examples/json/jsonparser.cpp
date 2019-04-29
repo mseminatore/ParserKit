@@ -33,7 +33,40 @@ JSONParser::~JSONParser()
 //
 //
 //
+void JSONParser::DoObject()
+{
+	match('{');
+	// match key-value pairs
+	match('}');
+}
+
+//
+//
+//
+void JSONParser::DoArray()
+{
+	match('[');
+	// match array elements
+	match(']');
+}
+//
+//
+//
 int JSONParser::DoToken(int token)
 {
+	while (lookahead != TV_DONE)
+	{
+		switch (lookahead)
+		{
+		case '{':
+			DoObject();
+			break;
 
+		case '[':
+			DoArray();
+			break;
+		}
+	}
+	
+	return 0;
 }

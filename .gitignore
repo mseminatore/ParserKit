@@ -32,8 +32,8 @@
 *.app
 
 # VC++ solutions
-*.sln
-*.vcxproj
+#*.sln
+#*.vcxproj
 *.filters
 *.db
 *.opendb

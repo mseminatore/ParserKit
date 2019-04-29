@@ -1,0 +1,7 @@
+{
+    "key":  "value",
+    "number": 0,
+    "boolean": false,
+    "array": [1, 2, "three", {}],
+    "obj": {"zero": 0}
+}
