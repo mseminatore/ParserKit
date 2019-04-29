@@ -6,23 +6,14 @@
 //
 //
 //
-char *_typeStrings[] = 
+static const char *_typeStrings[] = 
 {
 	"undef", 
-	"void", 
 	"enum",
 	"string literal",
 	"float",
 	"int", 
 	"char", 
-	"function", 
-	"unsigned",
-	"signed",
-	"short",
-	"long",
-	"bool",
-	"struct",
-	"string",
 	"define"
 };
 
@@ -32,11 +23,10 @@ char *_typeStrings[] =
 //
 //
 //
-SymbolTable::SymbolTable()
+SymbolTable::SymbolTable(int maxDepth /*= 10*/)
 {
 	m_iCurrentDepth = 0;
-	m_iMaxDepth		= 0;
-	m_uiAddress		= 0;
+	m_iMaxDepth		= maxDepth;
 
 	// add the first level to the table
 	m_symbolTable.push_back(SymbolMap());
@@ -52,15 +42,6 @@ SymbolTable::~SymbolTable()
 		Pop();
 		m_iCurrentDepth--;
 	}
-}
-
-//
-//
-//
-bool SymbolTable::Init(int maxDepth /*= 10*/)
-{
-	m_iMaxDepth = maxDepth;
-	return true;
 }
 
 //======================================================================
@@ -113,26 +94,7 @@ SymbolEntry *SymbolTable::GetNextGlobal()
 //
 //
 //
-unsigned SymbolTable::GetSizeOfType(SymbolType st)
-{
-	return asSymbolTypeSize[st];
-}
-
-//
-//
-//
-unsigned SymbolTable::GetNextAddress(SymbolEntry *pSym)
-{
-	unsigned addr = m_uiAddress;
-
-	m_uiAddress += GetSizeOfType(pSym->type);
-	return addr;
-}
-
-//
-//
-//
-char *SymbolTable::GetTypeName(SymbolType st)
+const char *SymbolTable::GetTypeName(SymbolType st)
 {
 	assert(st < stNumSymbolTypes);
 	return _typeStrings[st];

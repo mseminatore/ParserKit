@@ -6,12 +6,22 @@
 //======================================================================
 //
 //======================================================================
-BaseParser::BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer)
+BaseParser::BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer, std::unique_ptr<SymbolTable> pSymbolTable /*= NULL*/)
 {
 	m_lexer = std::move(theLexer);
 	m_iErrorCount = 0;
 	m_iWarningCount = 0;
 	m_bAllocatedSymbolTable = false;
+
+	if (pSymbolTable)
+	{
+		m_pSymbolTable = std::move(pSymbolTable);
+	}
+	else
+	{
+		m_pSymbolTable = std::make_unique<SymbolTable>();
+		m_bAllocatedSymbolTable = true;
+	}
 }
 
 //
@@ -26,30 +36,10 @@ BaseParser::~BaseParser()
 	}
 }
 
-// initialize the parser
-bool BaseParser::Init(std::unique_ptr<SymbolTable> pSymbolTable /*= NULL*/)
-{
-	if (!m_lexer->Init(this, &yylval))
-		return false;
-	
-
-	if (pSymbolTable)
-	{
-		m_pSymbolTable = std::move(pSymbolTable);
-	} else
-	{
-		m_pSymbolTable = std::make_unique<SymbolTable>();
-		m_pSymbolTable->Init(8);
-		m_bAllocatedSymbolTable = true;
-	}
-	
-	return true;
-}
-
 // the parser calls this method to report errors
 void BaseParser::yyerror(const char *fmt, ...)
 {
-	char buf[512], s[512];
+	char buf[SMALL_BUFFER], s[SMALL_BUFFER];
 	va_list argptr;
 
 	va_start(argptr, fmt);
@@ -71,7 +61,7 @@ void BaseParser::OutputErrorMessage(const char *msg)
 // print a warning message
 void BaseParser::yywarning(const char *fmt, ...)
 {
-	char buf[512], s[512];
+	char buf[SMALL_BUFFER], s[SMALL_BUFFER];
 	va_list argptr;
 
 	va_start(argptr, fmt);
@@ -132,7 +122,7 @@ int BaseParser::Parse(const char *filename)
 
 	_fullpath(szFullPath, filename, sizeof(szFullPath));
 	_splitpath_s(szFullPath, drive, dir, file, ext);
-	_stprintf_s(workingDir, "%s%s", drive, dir);
+	sprintf_s(workingDir, "%s%s", drive, dir);
 	_getdcwd(_getdrive(), oldWorkdingDir, sizeof(oldWorkdingDir));
 	_chdir(workingDir);
 
@@ -162,7 +152,7 @@ int BaseParser::ParseData(char *textToParse, const char *fileName, void *pUserDa
 	rv = m_lexer->SetData(textToParse, fileName, pUserData);
 	if (rv != 0)
 	{
-		yyerror("Couldn't parse text");//open file: %s", filename);
+		yyerror("Couldn't parse text");		//open file: %s", filename);
 		return rv;
 	}
 

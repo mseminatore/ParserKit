@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 #include <memory>
-#include "../../baseparser.h"
+#include "jsonparser.h"
 
 //
 // Command line switches
@@ -53,11 +53,10 @@ int main(int argc, char* argv[])
 
 	int iFirstArg = getopt(argc, argv);
 
-	auto parser = std::make_unique<BaseParser>();
-
-	parser->Init();
-
+	auto parser = std::make_unique<JSONParser>();
+	
 	parser->Parse(argv[iFirstArg]);
+
 	return 0;
 }
 

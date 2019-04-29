@@ -110,7 +110,7 @@ protected:
 	TokenTableMap m_tokenTable;
 
 public:
-	LexicalAnalzyer(TokenTable *atokenTable);
+	LexicalAnalzyer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval);
 	virtual ~LexicalAnalzyer();
 
 	const char *GetCurrentSourceText() { return m_szCurrentSourceLineText; }
@@ -150,7 +150,6 @@ public:
 	int getTotalLinesCompiled()		{ return m_iTotalLinesCompiled; }
 
 	// functions that may typically be overridden
-	virtual bool Init(BaseParser *pParser, YYSTYPE *yylval);
 	virtual int GetToken();
 	virtual int yylex();
 	virtual void yyerror(const char *s);

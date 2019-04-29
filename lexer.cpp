@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <assert.h>
-#include <string>
-#include <map>
-#include "lexer.h"
+
 #include "baseparser.h"
 
 //
@@ -29,9 +25,14 @@ static const char *_internalTokenLexemes[] =
 //======================================================================
 //
 //======================================================================
-LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable)
+LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable, BaseParser *pParser, YYSTYPE *pyylval)
 {
 	assert(aTokenTable);
+	assert(pParser);
+	assert(pyylval);
+
+	m_pParser = pParser;
+	m_yylval = pyylval;
 
 	m_iTotalLinesCompiled = 0;
 
@@ -63,7 +64,7 @@ LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable)
 //
 LexicalAnalzyer::~LexicalAnalzyer()
 {
-	for (int i = 0; i < ARRAYSIZE(m_fdStack); i++)
+	for (int i = 0; i < ARRAY_SIZE(m_fdStack); i++)
 	{
 		if (m_fdStack[i].fdDocument)
 		{
@@ -133,16 +134,6 @@ void LexicalAnalzyer::yywarning(const char *s)
 {
 	puts(s);
 	fflush(stdout);
-}
-
-//
-//
-//
-bool LexicalAnalzyer::Init(BaseParser *pParser, YYSTYPE *ayylval)
-{
-	m_pParser = pParser;
-	m_yylval = ayylval;
-	return true;
 }
 
 //
@@ -244,7 +235,7 @@ int LexicalAnalzyer::SetFile(const char *theFile)
 	assert(theFile);
 
 	m_iCurrentFD++;
-	if (m_iCurrentFD >= ARRAYSIZE(m_fdStack))
+	if (m_iCurrentFD >= ARRAY_SIZE(m_fdStack))
 		return -1;
 
 	assert(m_fdStack[m_iCurrentFD].fdDocument == NULL);
@@ -274,7 +265,7 @@ int LexicalAnalzyer::SetData(char *theData, const char *fileName, void *pUserDat
 	assert(theData);
 
 	m_iCurrentFD++;
-	if (m_iCurrentFD >= ARRAYSIZE(m_fdStack))
+	if (m_iCurrentFD >= ARRAY_SIZE(m_fdStack))
 		return -1;
 
 	assert(m_fdStack[m_iCurrentFD].pTextData == NULL);

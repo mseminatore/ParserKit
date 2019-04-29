@@ -1,9 +1,18 @@
 #ifndef __BASEPARSER_H
 #define __BASEPARSER_H
 
+#include <stdio.h>
+#include <assert.h>
+#include <string>
+#include <map>
 #include <memory>
+#include <vector>
+#include <list>
 #include "lexer.h"
 #include "symboltable.h"
+
+#define ARRAY_SIZE(p)	(size_t(sizeof(p) / sizeof(p[0])))
+#define SMALL_BUFFER	512
 
 //
 class BaseParser
@@ -31,7 +40,7 @@ protected:
 	std::unique_ptr<SymbolTable> m_pSymbolTable;
 
 public:
-	BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer);
+	BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer, std::unique_ptr<SymbolTable> pSymbolTable = nullptr);
 	virtual ~BaseParser();
 
 	LexicalAnalzyer *getLexer() const { return m_lexer.get(); }
@@ -39,7 +48,6 @@ public:
 	int GetErrorCount()		{ return m_iErrorCount; }
 	int GetWarningCount()	{ return m_iWarningCount; }
 
-	virtual bool Init(std::unique_ptr<SymbolTable> pSymbolTable = nullptr);
 	virtual int Parse(const char *filename);
 	virtual int ParseData(char *textToParse, const char *fileName, void *pUserData);
 	virtual int DoToken(int token);
