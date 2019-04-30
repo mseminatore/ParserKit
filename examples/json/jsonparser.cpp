@@ -3,7 +3,8 @@
 enum
 {
 	// pre-processor
-	//TV_INCLUDE = TV_USER,
+	TV_TRUE = TV_USER,
+	TV_FALSE,
 };
 
 //
@@ -11,6 +12,8 @@ enum
 //
 TokenTable _tokenTable[] =
 {
+	{ "true",	TV_TRUE },
+	{ "false",	TV_FALSE},
 	{ NULL,		TV_DONE }
 };
 
@@ -36,7 +39,18 @@ JSONParser::~JSONParser()
 void JSONParser::DoObject()
 {
 	match('{');
+	
 	// match key-value pairs
+	while (lookahead == TV_ID) 
+	{
+		match(TV_ID);
+		match(':');
+		// TODO - match value
+
+		if (lookahead == ',')
+			match(',');
+	}
+
 	match('}');
 }
 
