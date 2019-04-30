@@ -13,7 +13,7 @@ BaseParser::BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer, std::unique_pt
 	m_iWarningCount = 0;
 	m_bAllocatedSymbolTable = false;
 
-	if (pSymbolTable)
+	if (pSymbolTable.get())
 	{
 		m_pSymbolTable = std::move(pSymbolTable);
 	}

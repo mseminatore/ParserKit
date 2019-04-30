@@ -37,6 +37,7 @@
 *.filters
 *.db
 *.opendb
+*.user
 /examples/**/Debug
 /examples/**/.vs
 
