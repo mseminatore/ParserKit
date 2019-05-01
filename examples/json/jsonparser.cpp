@@ -5,6 +5,7 @@ enum
 	// pre-processor
 	TV_TRUE = TV_USER,
 	TV_FALSE,
+	TV_NULL,
 };
 
 //
@@ -14,6 +15,8 @@ TokenTable _tokenTable[] =
 {
 	{ "true",	TV_TRUE },
 	{ "false",	TV_FALSE},
+	{ "null",	TV_NULL},
+
 	{ NULL,		TV_DONE }
 };
 
@@ -34,7 +37,8 @@ JSONParser::~JSONParser()
 }
 
 //
-//
+// An object is an unordered set of name/value pairs. An object begins with { (left brace) and ends with } (right brace). Each name is followed by : (colon) 
+// and the name/value pairs are separated by , (comma).
 //
 void JSONParser::DoObject()
 {
@@ -45,7 +49,8 @@ void JSONParser::DoObject()
 	{
 		match(TV_ID);
 		match(':');
-		// TODO - match value
+
+		DoValue();
 
 		if (lookahead == ',')
 			match(',');
@@ -55,32 +60,66 @@ void JSONParser::DoObject()
 }
 
 //
-//
+// An array is an ordered collection of values. An array begins with [ (left bracket) and ends with ] (right bracket). Values are separated by , (comma).
 //
 void JSONParser::DoArray()
 {
 	match('[');
+	
 	// match array elements
+	// match key-value pairs
+	while (lookahead == TV_ID)
+	{
+		match(TV_ID);
+
+		DoValue();
+
+		if (lookahead == ',')
+			match(',');
+	}
+
 	match(']');
 }
+
+//
+// From JSON.org grammar
+//
+// A value can be a string in double quotes, or a number, or true or false or null, or an object or an array. These structures can be nested.
+//
+void JSONParser::DoValue()
+{
+	//Expecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '['
+	switch (lookahead)
+	{
+	case TV_STRING:
+		match(lookahead);
+		break;
+	
+	case TV_INTVAL:
+	case TV_FLOATVAL:
+		match(lookahead);
+		break;
+	
+	case TV_NULL:
+		match(lookahead);
+		break;
+
+	case '{':
+		DoObject();
+		break;
+
+	case '[':
+		DoArray();
+		break;
+	}
+}
+
 //
 //
 //
 int JSONParser::DoToken(int token)
 {
-	while (lookahead != TV_DONE)
-	{
-		switch (lookahead)
-		{
-		case '{':
-			DoObject();
-			break;
-
-		case '[':
-			DoArray();
-			break;
-		}
-	}
+	DoValue();
 	
 	return 0;
 }

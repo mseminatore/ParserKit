@@ -610,32 +610,6 @@ yylex01:
 
 	switch(chr)
 	{
-	case  '^':  return TV_XOR;
-
-	// TODO - add += and -= like operators
-	case  '>':  
-		if (TV_GE == follow('=', TV_GE, '>'))
-			return TV_GE;
-		return follow('>', TV_SHR, '>');
-
-	case  '<':  
-		if (TV_LE == follow('=', TV_LE, '<'))
-			return TV_LE;
-		return follow('<', TV_SHL, '<');
-
-	case  '=':  return follow('=', TV_EQ, '=');
-
-	case  '!':  return follow('=', TV_NE, TV_NOT);
-	case  '|':  return follow('|', TV_OR, '|');
-	case  '&':  return follow('&', TV_AND, '&');
-	case  '+':	return follow('+', TV_INC, '+');
-	case  '-':  
-		if (TV_DEREF == follow('>', TV_DEREF, '-'))
-			return TV_DEREF;
-
-		return follow('-', TV_DEC, '-');
-		break;
-
 	// we reached end of current file, but could be a nested include so pop
 	// file descriptor stack and try to continue
 	case 0:

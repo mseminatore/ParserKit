@@ -13,4 +13,5 @@ public:
 	int DoToken(int token) override;
 	void DoObject();
 	void DoArray();
+	void DoValue();
 };

@@ -28,21 +28,6 @@ enum {
 	
 	// identifier
 	TV_ID,
-	TV_DEREF,
-
-	// logical and arithmetic operators
-	TV_XOR,
-	TV_GE,
-	TV_LE,
-	TV_EQ,
-	TV_NE, 
-	TV_NOT,
-	TV_OR,
-	TV_AND,
-	TV_INC,
-	TV_DEC,
-	TV_SHL,
-	TV_SHR,
 
 	TV_USER
 };
@@ -87,6 +72,7 @@ protected:
 	char m_szCurrentSourceLineText[256];
 	int m_iCurrentSourceLineIndex;
 
+	// TODO - this should be a std::vector instead!
 	FDNode m_fdStack[20];
 	int m_iCurrentFD;
 
