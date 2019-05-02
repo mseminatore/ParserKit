@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../baseparser.h"
-#include "json.h"
+#include "jsonvalue.h"
 
 class JSONParser : public BaseParser
 {

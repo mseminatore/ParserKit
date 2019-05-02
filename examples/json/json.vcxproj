@@ -146,12 +146,13 @@
     <ClCompile Include="..\..\symboltable.cpp" />
     <ClCompile Include="json.cpp" />
     <ClCompile Include="jsonparser.cpp" />
+    <ClCompile Include="jsonvalue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lexer.h" />
     <ClInclude Include="..\..\baseparser.h" />
     <ClInclude Include="..\..\symboltable.h" />
-    <ClInclude Include="json.h" />
+    <ClInclude Include="jsonvalue.h" />
     <ClInclude Include="jsonparser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

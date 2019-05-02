@@ -55,10 +55,12 @@ void JSONParser::DoObject(JSONValue &node)
 	{
 		yylog("Found new key: %s", yylval.sym->lexeme.c_str());
 
+		auto result = node.o->key_values.insert( std::pair<std::string, std::unique_ptr<JSONValue>>(yylval.sym->lexeme, std::make_unique<JSONValue>()) );
+
 		match(TV_STRING);
 		match(':');
 
-		DoValue(node);
+		DoValue(*(*(result.first)).second);
 
 		if (lookahead == ',')
 			match(',');
@@ -80,7 +82,11 @@ void JSONParser::DoArray(JSONValue &node)
 	// match key-value pairs
 	while (lookahead != ']')
 	{
-		DoValue(node);
+		std::unique_ptr<JSONValue> val = std::make_unique<JSONValue>();
+
+		DoValue(*val);
+
+		node.a->elements.push_back(std::move(val));
 
 		if (lookahead == ',')
 			match(',');
@@ -165,6 +171,8 @@ int JSONParser::DoToken(int token)
 	JSONValue root;
 
 	DoValue(root);
-	
+
+	root.dump();
+
 	return 0;
 }

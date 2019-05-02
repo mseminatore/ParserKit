@@ -1,0 +1,42 @@
+[
+    {
+        "id": "MainPanel",
+        "type": "Panel",
+        "width": 100,
+        "height": 100,
+        "left": 10,
+        "top": 10,
+        "bgColor": "0x666666",
+        "bgImage": "/images/bg.png",
+        "children": 
+        [
+            {
+                "id": "okButton",
+                "type": "Button",
+                "autoSize": true,
+                "h-align": "center",
+                "v-align": "center",
+                "left": 10,
+                "top": 10,
+                "bgColor": "0x00ff00",
+                "default": true
+            },
+            {
+                "type": "HorizontalRule",
+                "top": 5,
+                "left": 0,
+                "width": "full"
+            },
+            {
+                "id": "cancelButton",
+                "type": "Button",
+                "autoSize": true,
+                "h-align": "center",
+                "v-align": "center",
+                "left": 50,
+                "top": 10,
+                "bgColor": "0xff0000"
+            }
+        ]
+    }
+]

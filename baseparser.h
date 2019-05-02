@@ -42,8 +42,6 @@ public:
 
 	bool yydebug = false;
 
-	void Log(const char *msg);
-
 	LexicalAnalzyer *GetLexer() const { return m_lexer.get(); }
 
 	int GetErrorCount()		{ return m_iErrorCount; }

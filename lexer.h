@@ -92,7 +92,7 @@ protected:
 		}
 	};
 
-	typedef std::map<std::string, int, ltstr> TokenTableMap;
+	using TokenTableMap = std::map<std::string, int, ltstr>;
 	TokenTableMap m_tokenTable;
 
 public:
