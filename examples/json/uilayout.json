@@ -1,42 +1,93 @@
 [
-Â Â  Â {
-Â Â  Â Â Â  Â "id": "MainPanel",
-Â Â  Â Â Â  Â "type": "Panel",
-Â Â  Â Â Â  Â "width": 100,
-Â Â  Â Â Â  Â "height": 100,
-Â Â  Â Â Â  Â "left": 10,
-Â Â  Â Â Â  Â "top": 10,
-Â Â  Â Â Â  Â "bgColor": "0x666666",
-Â Â  Â Â Â  Â "bgImage": "/images/bg.png",
-Â Â  Â Â Â  Â "children":Â 
-Â Â  Â Â Â  Â [
-        Â Â  Â {
-        Â Â  Â Â Â  Â "id": "okButton",
-        Â Â  Â Â Â  Â "type": "Button",
-        Â Â  Â Â Â  Â "autoSize": true,
-        Â Â  Â Â Â  Â "h-align": "center",
-        Â Â  Â Â Â  Â "v-align": "center",
-        Â Â  Â Â Â  Â "left": 10,
-        Â Â  Â Â Â  Â "top": 10,
-        Â Â  Â Â Â  Â "bgColor": "0x00ff00",
-        Â Â  Â Â Â  Â "default": true
-        Â Â  Â },
-Â Â  Â Â Â  Â Â Â  Â {
-Â Â  Â Â Â  Â Â Â  Â Â Â  Â "type": "HorizontalRule",
-Â Â  Â Â Â  Â Â Â  Â Â Â  Â "top": 5,
-Â Â  Â Â Â  Â Â Â  Â Â Â  Â "left": 0,
-Â Â  Â Â Â  Â Â Â  Â Â Â  Â "width": "full"
-Â Â  Â Â Â  Â Â Â  Â },
-    Â Â  Â     {
-        Â Â  Â Â Â  Â "id": "cancelButton",
-        Â Â  Â Â Â  Â "type": "Button",
-        Â Â  Â Â Â  Â "autoSize": true,
-        Â Â  Â Â Â  Â "h-align": "center",
-        Â Â  Â Â Â  Â "v-align": "center",
-        Â Â  Â Â Â  Â "left": 50,
-        Â Â  Â Â Â  Â "top": 10,
-        Â Â  Â Â Â  Â "bgColor": "0xff0000"
-        Â Â  Â }
-Â Â  Â     ]
-Â Â  Â }
+  
+  {
+          
+     "id": "MainPanel",
+          
+     "type": "Panel",
+          
+     "width": 100,
+          
+     "height": 100,
+          
+     "left": 10,
+          
+     "top": 10,
+          
+     "bgColor": "0x666666",
+          
+     "bgImage": "/images/bg.png",
+          
+     "children":  
+          
+      [
+        
+       
+      {
+              
+         "id": "okButton",
+              
+         "type": "Button",
+              
+         "autoSize": true,
+              
+         "h-align": "center",
+              
+         "v-align": "center",
+              
+         "left": 10,
+              
+         "top": 10,
+              
+         "bgColor": "0x00ff00",
+              
+         "default": true
+            
+      },
+        
+         
+         
+       
+      {
+              
+               
+         "type": "HorizontalRule",
+              
+               
+         "top": 5,
+              
+               
+         "left": 0,
+              
+               
+         "width": "full"
+              
+             
+      },
+        
+       
+      {
+              
+         "id": "cancelButton",
+              
+         "type": "Button",
+              
+         "autoSize": true,
+              
+         "h-align": "center",
+              
+         "v-align": "center",
+              
+         "left": 50,
+              
+         "top": 10,
+              
+         "bgColor": "0xff0000"
+            
+      }
+        
+       
+    ]
+        
+  }
 ]
