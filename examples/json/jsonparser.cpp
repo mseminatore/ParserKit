@@ -44,7 +44,7 @@ JSONParser::~JSONParser()
 // An object is an unordered set of name/value pairs. An object begins with { (left brace) and ends with } (right brace). Each name is followed by : (colon) 
 // and the name/value pairs are separated by , (comma).
 //
-void JSONParser::DoObject()
+void JSONParser::DoObject(JSONValue &node)
 {
 	yylog("Found new object");
 
@@ -58,7 +58,7 @@ void JSONParser::DoObject()
 		match(TV_STRING);
 		match(':');
 
-		DoValue();
+		DoValue(node);
 
 		if (lookahead == ',')
 			match(',');
@@ -70,7 +70,7 @@ void JSONParser::DoObject()
 //
 // An array is an ordered collection of values. An array begins with [ (left bracket) and ends with ] (right bracket). Values are separated by , (comma).
 //
-void JSONParser::DoArray()
+void JSONParser::DoArray(JSONValue &node)
 {
 	yylog("Found new array");
 
@@ -80,7 +80,7 @@ void JSONParser::DoArray()
 	// match key-value pairs
 	while (lookahead != ']')
 	{
-		DoValue();
+		DoValue(node);
 
 		if (lookahead == ',')
 			match(',');
@@ -90,45 +90,69 @@ void JSONParser::DoArray()
 }
 
 //
-// From JSON.org grammar
+// From JSON.org grammar:
 //
 // A value can be a string in double quotes, or a number, or true or false or null, or an object or an array. These structures can be nested.
+//	'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '['
 //
-void JSONParser::DoValue()
+void JSONParser::DoValue(JSONValue &node)
 {
-	//Expecting 'STRING', 'NUMBER', 'NULL', 'TRUE', 'FALSE', '{', '['
 	switch (lookahead)
 	{
 	case TV_STRING:
+		node.value_type = JSONValue::ValueType::String;
+		node.s = yylval.sym->lexeme;
+
 		yylog("'%s'", yylval.sym->lexeme.c_str());
 		match(lookahead);
 		break;
 	
 	case TV_INTVAL:
+		node.value_type = JSONValue::ValueType::Number;
+		node.n = (float)yylval.ival;
+
 		yylog("%d", yylval.ival);
 
 		match(lookahead);
 		break;
 
 	case TV_FLOATVAL:
+		node.value_type = JSONValue::ValueType::Number;
+		node.n = yylval.fval;
+
 		yylog("%f", yylval.fval);
 
 		match(lookahead);
 		break;
 	
 	case TV_NULL:
+		node.value_type = JSONValue::ValueType::Null;
+
+		yylog(m_lexer->GetLexemeFromToken(lookahead));
+		match(lookahead);
+		break;
+
 	case TV_TRUE:
 	case TV_FALSE:
+		node.value_type = JSONValue::ValueType::Boolean;
+		node.b = lookahead == TV_TRUE ? true : false;
+
 		yylog(m_lexer->GetLexemeFromToken(lookahead));
 		match(lookahead);
 		break;
 
 	case '{':
-		DoObject();
+		node.value_type = JSONValue::ValueType::Object;
+		node.o = std::make_unique<JSONObject>();
+
+		DoObject(node);
 		break;
 
 	case '[':
-		DoArray();
+		node.value_type = JSONValue::ValueType::Array;
+		node.a = std::make_unique<JSONArray>();
+
+		DoArray(node);
 		break;
 	}
 }
@@ -138,7 +162,9 @@ void JSONParser::DoValue()
 //
 int JSONParser::DoToken(int token)
 {
-	DoValue();
+	JSONValue root;
+
+	DoValue(root);
 	
 	return 0;
 }

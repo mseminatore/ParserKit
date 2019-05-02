@@ -13,8 +13,7 @@
 //
 // Command line switches
 //
-//bool g_bOptimize = false;
-//bool g_bDumpPhaseIR = false;
+bool g_bDebug = false;
 
 //
 // show usage
@@ -33,11 +32,8 @@ int getopt(int n, char *args[])
 	int i;
 	for (i = 1; args[i][0] == '-'; i++)
 	{
-		//if (args[i][1] == 'O')
-		//	g_bOptimize = true;
-
-		//if (args[i][1] == 'd')
-		//	g_bDumpPhaseIR = true;
+		if (args[i][1] == 'd')
+			g_bDebug = true;
 	}
 
 	return i;
@@ -55,6 +51,8 @@ int main(int argc, char* argv[])
 
 	JSONParser parser;
 	
+//	parser.yydebug = g_bDebug;
+
 	parser.Parse(argv[iFirstArg]);
 
 	return 0;

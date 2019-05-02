@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../baseparser.h"
+#include "json.h"
 
 class JSONParser : public BaseParser
 {
@@ -11,7 +12,7 @@ public:
 	virtual ~JSONParser();
 	
 	int DoToken(int token) override;
-	void DoObject();
-	void DoArray();
-	void DoValue();
+	void DoObject(JSONValue &node);
+	void DoArray(JSONValue &node);
+	void DoValue(JSONValue &node);
 };

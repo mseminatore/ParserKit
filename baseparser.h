@@ -33,14 +33,14 @@ protected:
 	// total warning count
 	int m_iWarningCount;
 
-	bool yydebug = false;
-
 	// our symbol table
 	std::unique_ptr<SymbolTable> m_pSymbolTable;
 
 public:
 	BaseParser();
 	virtual ~BaseParser();
+
+	bool yydebug = false;
 
 	void Log(const char *msg);
 
