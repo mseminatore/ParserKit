@@ -6,34 +6,18 @@
 //======================================================================
 //
 //======================================================================
-BaseParser::BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer, std::unique_ptr<SymbolTable> pSymbolTable /*= NULL*/)
+BaseParser::BaseParser()
 {
-	m_lexer = std::move(theLexer);
-	m_iErrorCount = 0;
+	m_lexer			= nullptr;
+	m_iErrorCount	= 0;
 	m_iWarningCount = 0;
-	m_bAllocatedSymbolTable = false;
-
-	if (pSymbolTable.get())
-	{
-		m_pSymbolTable = std::move(pSymbolTable);
-	}
-	else
-	{
-		m_pSymbolTable = std::make_unique<SymbolTable>();
-		m_bAllocatedSymbolTable = true;
-	}
+	m_pSymbolTable	= std::make_unique<SymbolTable>();
 }
 
 //
 BaseParser::~BaseParser()
 {
-	m_lexer = nullptr;
-
-	if (m_bAllocatedSymbolTable)
-	{
-		m_pSymbolTable->DumpUnreferencedSymbolsAtCurrentLevel();
-		m_pSymbolTable = nullptr;
-	}
+	m_pSymbolTable->DumpUnreferencedSymbolsAtCurrentLevel();
 }
 
 // the parser calls this method to report errors
@@ -78,6 +62,22 @@ void BaseParser::yywarning(const char *fmt, ...)
 void BaseParser::OutputWarningMessage(const char *msg)
 {
 	m_lexer->yywarning(msg);
+}
+
+//
+void BaseParser::yylog(const char *fmt, ...)
+{
+	if (!yydebug)
+		return;
+
+	char buf[SMALL_BUFFER];
+	va_list argptr;
+
+	va_start(argptr, fmt);
+		vsprintf_s(buf, fmt, argptr);
+	va_end(argptr);
+
+	puts(buf);
 }
 
 //

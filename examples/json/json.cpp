@@ -53,9 +53,9 @@ int main(int argc, char* argv[])
 
 	int iFirstArg = getopt(argc, argv);
 
-	auto parser = std::make_unique<JSONParser>();
+	JSONParser parser;
 	
-	parser->Parse(argv[iFirstArg]);
+	parser.Parse(argv[iFirstArg]);
 
 	return 0;
 }

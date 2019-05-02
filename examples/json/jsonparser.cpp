@@ -1,3 +1,6 @@
+//
+// This parser parses JSON files per definition at https://json.org
+//
 #include "jsonparser.h"
 
 enum
@@ -23,9 +26,10 @@ TokenTable _tokenTable[] =
 //
 //
 //
-JSONParser::JSONParser() : BaseParser(std::make_unique<LexicalAnalzyer>(_tokenTable, this, &yylval))
+JSONParser::JSONParser() : BaseParser()
 {
-
+	m_lexer = std::make_unique<LexicalAnalzyer>(_tokenTable, this, &yylval);
+	yydebug = true;
 }
 
 //
@@ -42,12 +46,16 @@ JSONParser::~JSONParser()
 //
 void JSONParser::DoObject()
 {
+	yylog("Found new object");
+
 	match('{');
 	
 	// match key-value pairs
-	while (lookahead == TV_ID) 
+	while (lookahead == TV_STRING) 
 	{
-		match(TV_ID);
+		yylog("Found new key: %s", yylval.sym->lexeme.c_str());
+
+		match(TV_STRING);
 		match(':');
 
 		DoValue();
@@ -64,14 +72,14 @@ void JSONParser::DoObject()
 //
 void JSONParser::DoArray()
 {
+	yylog("Found new array");
+
 	match('[');
 	
 	// match array elements
 	// match key-value pairs
-	while (lookahead == TV_ID)
+	while (lookahead != ']')
 	{
-		match(TV_ID);
-
 		DoValue();
 
 		if (lookahead == ',')
@@ -92,15 +100,26 @@ void JSONParser::DoValue()
 	switch (lookahead)
 	{
 	case TV_STRING:
+		yylog("'%s'", yylval.sym->lexeme.c_str());
 		match(lookahead);
 		break;
 	
 	case TV_INTVAL:
+		yylog("%d", yylval.ival);
+
+		match(lookahead);
+		break;
+
 	case TV_FLOATVAL:
+		yylog("%f", yylval.fval);
+
 		match(lookahead);
 		break;
 	
 	case TV_NULL:
+	case TV_TRUE:
+	case TV_FALSE:
+		yylog(m_lexer->GetLexemeFromToken(lookahead));
 		match(lookahead);
 		break;
 

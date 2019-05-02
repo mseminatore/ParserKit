@@ -21,7 +21,7 @@ protected:
 	// the lexical analyzer
 	std::unique_ptr<LexicalAnalzyer> m_lexer;
 
-	// the 
+	// the value filled in by the lexical analyzer
 	YYSTYPE yylval;
 	
 	// next token in the parse stream
@@ -33,17 +33,18 @@ protected:
 	// total warning count
 	int m_iWarningCount;
 
-	// was symbol table allocated by the parser
-	bool m_bAllocatedSymbolTable;
+	bool yydebug = false;
 
 	// our symbol table
 	std::unique_ptr<SymbolTable> m_pSymbolTable;
 
 public:
-	BaseParser(std::unique_ptr<LexicalAnalzyer> theLexer, std::unique_ptr<SymbolTable> pSymbolTable = nullptr);
+	BaseParser();
 	virtual ~BaseParser();
 
-	LexicalAnalzyer *getLexer() const { return m_lexer.get(); }
+	void Log(const char *msg);
+
+	LexicalAnalzyer *GetLexer() const { return m_lexer.get(); }
 
 	int GetErrorCount()		{ return m_iErrorCount; }
 	int GetWarningCount()	{ return m_iWarningCount; }
@@ -60,6 +61,8 @@ public:
 
 	virtual void expected(int token);
 	virtual void match(int token);
+
+	virtual void yylog(const char *fmt, ...);
 
 	// these methods delegate their work to the symbol table object
 	SymbolEntry *installSymbol(char *lexeme, SymbolType st = stUndef)

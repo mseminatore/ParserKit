@@ -35,7 +35,7 @@ enum {
 //
 struct TokenTable
 {
-	char *lexeme;
+	const char *lexeme;
 	int token;
 };
 

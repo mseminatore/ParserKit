@@ -40,12 +40,8 @@ LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	for (; aTokenTable->lexeme; aTokenTable++)
 		m_tokenTable[aTokenTable->lexeme] = aTokenTable->token;
 
-	m_yylval		= NULL;
-
 	compare_function	= _stricmp;
 	m_bCaseInsensitive	= true;
-
-	m_pParser = NULL;
 
 	m_iCurrentSourceLineIndex = -1;
 
@@ -589,7 +585,9 @@ yylex01:
 		// search token table for possible match
 		TokenTableMap::iterator iterTokens = m_tokenTable.find(buf);
 		if (iterTokens != m_tokenTable.end())
+		{
 			return iterTokens->second;
+		}
 
 		// see if symbol is already in symbol table
 		sym = m_pParser->lookupSymbol(buf);

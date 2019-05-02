@@ -2,6 +2,7 @@
     "key":  "value",
     "number": 0,
     "boolean": false,
+    "null": null,
     "array": [1, 2, "three", {}],
     "obj": {"zero": 0}
 }
