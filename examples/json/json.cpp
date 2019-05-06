@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
 	JSONParser parser;
 	
-//	parser.yydebug = g_bDebug;
+	parser.yydebug = g_bDebug;
 
 	parser.Parse(argv[iFirstArg]);
 
