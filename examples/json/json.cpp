@@ -32,7 +32,7 @@ int getopt(int n, char *args[])
 	int i;
 	for (i = 1; args[i][0] == '-'; i++)
 	{
-		if (args[i][1] == 'd')
+		if (args[i][1] == 'v')
 			g_bDebug = true;
 	}
 

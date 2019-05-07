@@ -17,6 +17,9 @@
 //
 class BaseParser
 {
+public:
+	bool yydebug = false;
+
 protected:
 	// the lexical analyzer
 	std::unique_ptr<LexicalAnalzyer> m_lexer;
@@ -39,8 +42,6 @@ protected:
 public:
 	BaseParser();
 	virtual ~BaseParser();
-
-	bool yydebug = false;
 
 	LexicalAnalzyer *GetLexer() const { return m_lexer.get(); }
 
