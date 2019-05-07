@@ -18,30 +18,15 @@ static const char *_typeStrings[] =
 };
 
 // ensure that the array matches the enumeration
-//C_ASSERT(ARRAYSIZE(_typeStrings) == stNumSymbolTypes);
+static_assert(ARRAY_SIZE(_typeStrings) == stNumSymbolTypes, "array size mismatch");
 
 //
 //
 //
-SymbolTable::SymbolTable(int maxDepth /*= 10*/)
+SymbolTable::SymbolTable()
 {
-	m_iCurrentDepth = 0;
-	m_iMaxDepth		= maxDepth;
-
 	// add the first level to the table
 	m_symbolTable.push_back(SymbolMap());
-}
-
-//
-//
-//
-SymbolTable::~SymbolTable()
-{
-	while (m_iCurrentDepth)
-	{
-		Pop();
-		m_iCurrentDepth--;
-	}
 }
 
 //======================================================================
@@ -49,9 +34,6 @@ SymbolTable::~SymbolTable()
 //======================================================================
 void SymbolTable::Push()
 {
-	m_iCurrentDepth++;
-	assert(m_iCurrentDepth < m_iMaxDepth);
-
 	m_symbolTable.push_back(SymbolMap());
 }
 
@@ -61,10 +43,9 @@ void SymbolTable::Push()
 void SymbolTable::Pop()
 {
 	m_symbolTable.pop_back();
-	m_iCurrentDepth--;
 
 	// ensure that we don't underflow the stack!
-	assert(m_iCurrentDepth >= 0);
+	assert(m_symbolTable.size() >= 0);
 }
 
 //

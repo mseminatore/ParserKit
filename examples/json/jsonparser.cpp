@@ -20,7 +20,7 @@ TokenTable _tokenTable[] =
 	{ "false",	TV_FALSE},
 	{ "null",	TV_NULL},
 
-	{ NULL,		TV_DONE }
+	{ nullptr,	TV_DONE }
 };
 
 //
@@ -133,7 +133,7 @@ void JSONParser::DoValue(JSONValue &node)
 	case TV_NULL:
 		node.value_type = JSONValue::ValueType::Null;
 
-		yylog(m_lexer->GetLexemeFromToken(lookahead));
+		yylog(m_lexer->getLexemeFromToken(lookahead));
 		match(lookahead);
 		break;
 
@@ -142,7 +142,7 @@ void JSONParser::DoValue(JSONValue &node)
 		node.value_type = JSONValue::ValueType::Boolean;
 		node.b = lookahead == TV_TRUE ? true : false;
 
-		yylog(m_lexer->GetLexemeFromToken(lookahead));
+		yylog(m_lexer->getLexemeFromToken(lookahead));
 		match(lookahead);
 		break;
 

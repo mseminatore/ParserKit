@@ -1,6 +1,8 @@
 #ifndef __SYMBOL_H
 #define __SYMBOL_H
 
+#define ARRAY_SIZE(p)	(size_t(sizeof(p) / sizeof(p[0])))
+
 //
 //
 //
@@ -17,11 +19,6 @@ enum SymbolType
 
 	stNumSymbolTypes
 };
-
-//
-// Ensure that the array and enum stay in sync
-//
-//C_ASSERT(ARRAYSIZE(asSymbolTypeSize) == stNumSymbolTypes);
 
 //
 //
@@ -69,9 +66,6 @@ protected:
 	SymbolStack m_symbolTable;
 	SymbolEntry *m_pCurrentSymbol;
 
-	int m_iCurrentDepth;
-	int m_iMaxDepth;
-
 public:
 	typedef SymbolStack::iterator stack_iterator;
 	typedef SymbolMap::iterator map_iterator;
@@ -80,8 +74,8 @@ protected:
 	map_iterator m_globalIter;
 
 public:
-	SymbolTable(int maxDepth = 10);
-	virtual ~SymbolTable();
+	SymbolTable();
+	virtual ~SymbolTable() = default;
 
 	SymbolEntry *lookup(const char *lexeme);
 	SymbolEntry *reverse_lookup(int ival);

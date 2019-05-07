@@ -34,7 +34,7 @@ LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	m_pParser = pParser;
 	m_yylval = pyylval;
 
-	m_iTotalLinesCompiled = 0;
+	m_iTotalLinesParsed = 0;
 
 	// add tokens to table
 	for (; aTokenTable->lexeme; aTokenTable++)
@@ -43,58 +43,29 @@ LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	compare_function	= _stricmp;
 	m_bCaseInsensitive	= true;
 
-	m_iCurrentSourceLineIndex = -1;
-
-	for (int i = 0; i < ARRAY_SIZE(m_fdStack); i++)
-	{
-		m_fdStack[i].fdDocument = NULL;
-		m_fdStack[i].pTextData = NULL;
-		m_fdStack[i].filename = NULL;
-		m_fdStack[i].yylineno = 1;
-		m_fdStack[i].column = 0;
-	}
-
-	m_iCurrentFD = 0;
-}
-
-//
-LexicalAnalzyer::~LexicalAnalzyer()
-{
-	for (int i = 0; i < ARRAY_SIZE(m_fdStack); i++)
-	{
-		if (m_fdStack[i].fdDocument)
-		{
-			fclose(m_fdStack[i].fdDocument);
-			m_fdStack[i].fdDocument = NULL;
-		}
-
-		if (m_fdStack[i].filename)
-		{
-			free(m_fdStack[i].filename);
-			m_fdStack[i].filename	= NULL;
-		}
-	}
+	//m_iCurrentSourceLineIndex = -1;
 }
 
 //======================================================================
 //
 //======================================================================
-int LexicalAnalzyer::GetChar()
+int LexicalAnalzyer::getChar()
 {
-	m_fdStack[m_iCurrentFD].column++;
+	m_fdStack.back().column++;
 
 	// get new line if necessary
 //	if (m_iCurrentSourceLineIndex == -1)
-//		fgets(m_szCurrentSourceLineText, sizeof(m_szCurrentSourceLineText), m_fdStack[m_iCurrentFD].fdDocument);
+//		fgets(m_szCurrentSourceLineText, sizeof(m_szCurrentSourceLineText), m_fdStack.back().fdDocument);
 
-	if (m_fdStack[m_iCurrentFD].fdDocument)
+	// if parsing files get next file char
+	if (m_fdStack.back().fdDocument)
 	{
-//		strcat();
-		return fgetc(m_fdStack[m_iCurrentFD].fdDocument);
+		return fgetc(m_fdStack.back().fdDocument);
 	}
 
-	int c = *m_fdStack[m_iCurrentFD].pTextData;
-	m_fdStack[m_iCurrentFD].pTextData++;
+	// otherwise return data from memory ptr
+	int c = *m_fdStack.back().pTextData;
+	m_fdStack.back().pTextData++;
 	
 	return c;
 }
@@ -102,14 +73,16 @@ int LexicalAnalzyer::GetChar()
 //======================================================================
 //
 //======================================================================
-int LexicalAnalzyer::UnGetChar(int c)
+int LexicalAnalzyer::ungetChar(int c)
 {
-	m_fdStack[m_iCurrentFD].column--;
+	m_fdStack.back().column--;
 
-	if (m_fdStack[m_iCurrentFD].fdDocument)
-		return ungetc(c, m_fdStack[m_iCurrentFD].fdDocument);
+	// if parsing files put back file char
+	if (m_fdStack.back().fdDocument)
+		return ungetc(c, m_fdStack.back().fdDocument);
 
-	m_fdStack[m_iCurrentFD].pTextData--;
+	// otherwise put back data to memory ptr
+	m_fdStack.back().pTextData--;
 	return 0;
 }
 
@@ -135,7 +108,7 @@ void LexicalAnalzyer::yywarning(const char *s)
 //
 //
 //
-void LexicalAnalzyer::CaseSensitive(bool onoff /*= true*/)
+void LexicalAnalzyer::caseSensitive(bool onoff /*= true*/)
 {
 	compare_function	= (onoff) ? strcmp : _stricmp;
 	m_bCaseInsensitive	= onoff;
@@ -144,7 +117,7 @@ void LexicalAnalzyer::CaseSensitive(bool onoff /*= true*/)
 //===============================================================
 //
 //===============================================================
-const char *LexicalAnalzyer::GetLexemeFromToken(int token)
+const char *LexicalAnalzyer::getLexemeFromToken(int token)
 {
 	// look for single char tokens
 	if (token < 256)
@@ -166,57 +139,35 @@ const char *LexicalAnalzyer::GetLexemeFromToken(int token)
 //======================================================================
 //
 //======================================================================
-int LexicalAnalzyer::PopFile()
+int LexicalAnalzyer::popFile()
 {
 	// if we were processing a file, close it
-	if (m_fdStack[m_iCurrentFD].fdDocument)
+	if (m_fdStack.back().fdDocument)
 	{
-		assert(m_fdStack[m_iCurrentFD].fdDocument);
-		if (m_fdStack[m_iCurrentFD].fdDocument)
-		{
-			fclose(m_fdStack[m_iCurrentFD].fdDocument);
-			m_fdStack[m_iCurrentFD].fdDocument = NULL;
-		}
-
-		assert(m_fdStack[m_iCurrentFD].filename);
-		if (m_fdStack[m_iCurrentFD].filename)
-		{
-			free(m_fdStack[m_iCurrentFD].filename);
-			m_fdStack[m_iCurrentFD].filename	= NULL;
-		}
-
-		m_iCurrentFD--;
-		if (m_iCurrentFD == 0)
+		m_fdStack.pop_back();
+		if (m_fdStack.size() == 0)
 			return EOF;
 
 		return 0;
 	}
 
 	// if we were processing in-memory data, release it
-	FreeData(m_fdStack[m_iCurrentFD].pUserData);
-	m_fdStack[m_iCurrentFD].pUserData = NULL;
+	freeData(m_fdStack.back().pUserData);
+	m_fdStack.back().pUserData = nullptr;
 	
 	// we assume the pTextData is a subset of the pUserData,
 	// and was freed when the data was freed
-	m_fdStack[m_iCurrentFD].pTextData = NULL;
+	m_fdStack.back().pTextData = nullptr;
 
-	// free the filename of the resource file
-	assert(m_fdStack[m_iCurrentFD].filename);
-	if (m_fdStack[m_iCurrentFD].filename)
-	{
-		free(m_fdStack[m_iCurrentFD].filename);
-		m_fdStack[m_iCurrentFD].filename	= NULL;
-	}
-
-	m_iCurrentFD--;
-	if (m_iCurrentFD == 0)
+	m_fdStack.pop_back();
+	if (m_fdStack.size() == 0)
 		return EOF;
 
 	return 0;
 }
 
 // this is a no-op  meant to be overridden in derived classes
-void LexicalAnalzyer::FreeData(void *pUserData)
+void LexicalAnalzyer::freeData(void *pUserData)
 {
 	if (pUserData)
 		assert(false);
@@ -226,29 +177,25 @@ void LexicalAnalzyer::FreeData(void *pUserData)
 // Begin processing the given file, pushing the current file onto the
 // file descriptor stack.
 //======================================================================
-int LexicalAnalzyer::SetFile(const char *theFile)
+int LexicalAnalzyer::setFile(const char *theFile)
 {
 	assert(theFile);
 
-	m_iCurrentFD++;
-	if (m_iCurrentFD >= ARRAY_SIZE(m_fdStack))
-		return -1;
+	m_fdStack.push_back(FDNode());
 
-	assert(m_fdStack[m_iCurrentFD].fdDocument == NULL);
+	assert(m_fdStack.back().fdDocument == nullptr);
 	
-	FILE *pFile = NULL;
+	FILE *pFile = nullptr;
 	if (fopen_s(&pFile, theFile, "rt"))
 		return -1;
 
-	m_fdStack[m_iCurrentFD].fdDocument = pFile;
+	m_fdStack.back().fdDocument = pFile;
 
-	if (!m_fdStack[m_iCurrentFD].fdDocument)
+	if (!m_fdStack.back().fdDocument)
 		return -1;
 
-	assert(m_fdStack[m_iCurrentFD].filename == NULL);
-	m_fdStack[m_iCurrentFD].filename = _strdup(theFile);
-
-	m_fdStack[m_iCurrentFD].yylineno = 1;
+	m_fdStack.back().filename = theFile;
+	m_fdStack.back().yylineno = 1;
 
 	return 0;
 }
@@ -256,37 +203,23 @@ int LexicalAnalzyer::SetFile(const char *theFile)
 //======================================================================
 //
 //======================================================================
-int LexicalAnalzyer::SetData(char *theData, const char *fileName, void *pUserData)
+int LexicalAnalzyer::setData(char *theData, const char *fileName, void *pUserData)
 {
 	assert(theData);
 
-	m_iCurrentFD++;
-	if (m_iCurrentFD >= ARRAY_SIZE(m_fdStack))
-		return -1;
+	m_fdStack.push_back(FDNode());
 
-	assert(m_fdStack[m_iCurrentFD].pTextData == NULL);
-	m_fdStack[m_iCurrentFD].pTextData = theData;
+	assert(m_fdStack.back().pTextData == nullptr);
+	m_fdStack.back().pTextData = theData;
 
-	if (!m_fdStack[m_iCurrentFD].pTextData)
+	if (!m_fdStack.back().pTextData)
 		return -1;
 
 	// hold onto this for later
-	m_fdStack[m_iCurrentFD].pUserData = pUserData;
+	m_fdStack.back().pUserData	= pUserData;
+	m_fdStack.back().filename	= fileName;
+	m_fdStack.back().yylineno	= 1;
 
-	assert(m_fdStack[m_iCurrentFD].filename == NULL);
-	m_fdStack[m_iCurrentFD].filename = _strdup(fileName);
-
-	m_fdStack[m_iCurrentFD].yylineno = 1;
-
-	return 0;
-}
-
-//
-//
-//
-int LexicalAnalzyer::GetToken()
-{
-	// TODO - implement
 	return 0;
 }
 
@@ -311,18 +244,18 @@ bool LexicalAnalzyer::iswhitespace(int c)
 }
 
 // skip any leading WS
-int LexicalAnalzyer::SkipLeadingWhiteSpace()
+int LexicalAnalzyer::skipLeadingWhiteSpace()
 {
 	int chr;
 
 	do
 	{
-		chr = GetChar();
+		chr = getChar();
 		if (chr == '\n')
 		{
-			m_fdStack[m_iCurrentFD].column = 0;
-			m_fdStack[m_iCurrentFD].yylineno++;
-			m_iTotalLinesCompiled++;
+			m_fdStack.back().column = 0;
+			m_fdStack.back().yylineno++;
+			m_iTotalLinesParsed++;
 		}
 	} while (iswhitespace(chr));
 
@@ -339,7 +272,7 @@ int LexicalAnalzyer::backslash(int c)
 	if (c != '\\')
 		return c;
 
-	c = GetChar();
+	c = getChar();
 	if (islower(c) && strchr(translation_tab, c))
 		return strchr(translation_tab, c)[1];
 
@@ -354,10 +287,10 @@ void LexicalAnalzyer::skipToEOL(void)
 	int c;
 
 	// skip to EOL
-	while ((c = GetChar()) != '\n');
+	while ((c = getChar()) != '\n');
 
 	// put last character back
-	UnGetChar(c);
+	ungetChar(c);
 }
 
 //
@@ -368,7 +301,7 @@ void LexicalAnalzyer::cstyle_comment(void)
 	int c;
 
 	// skip to EOL
-	for (c = GetChar(); c != EOF; c = GetChar())
+	for (c = getChar(); c != EOF; c = getChar())
 	{
 		if (c == '*')
 		{
@@ -385,11 +318,11 @@ int LexicalAnalzyer::follow(int expect, int ifyes, int ifno)
 {
 	int chr;
 
-	chr = GetChar();
+	chr = getChar();
 	if (chr == expect)
 		return ifyes;
 
-	UnGetChar(chr);
+	ungetChar(chr);
 	return ifno;
 }
 
@@ -404,25 +337,25 @@ int LexicalAnalzyer::getNumber()
 	int base = 10;
 
 	// look for hex numbers
- 	c = GetChar();
+ 	c = getChar();
 	if (c == '0' && (follow('X', 1, 0) || follow('x', 1, 0)))
 		base = 16;
 	else
-		UnGetChar(c);
+		ungetChar(c);
 
 	if (base == 16)
 	{
-		while (isxdigit(c = GetChar()))
+		while (isxdigit(c = getChar()))
 			*bufptr++ = c;
 	}
 	else
 	{
-		while (isdigit((c = GetChar())) || c == '.')
+		while (isdigit((c = getChar())) || c == '.')
 			*bufptr++ = c;
 	}
 	
 	// need to put back the last character
-	UnGetChar(c);
+	ungetChar(c);
 
 	// make sure string is asciiz
 	*bufptr = '\0';
@@ -430,7 +363,7 @@ int LexicalAnalzyer::getNumber()
 	// handle floats and ints
 	if (!strchr(buf, '.'))
 	{
-		m_yylval->ival = strtoul(buf, NULL, base);
+		m_yylval->ival = strtoul(buf, nullptr, base);
 		return TV_INTVAL;
 	}
 	else
@@ -447,9 +380,9 @@ int LexicalAnalzyer::getCharLiteral()
 {
 	int c;
 	
-	c = backslash(GetChar());
+	c = backslash(getChar());
 	m_yylval->char_val = c;
-	c = GetChar();
+	c = getChar();
 	if (c != '\'')
 		yyerror("missing single quote");
 
@@ -466,7 +399,7 @@ int LexicalAnalzyer::getStringLiteral()
 	char buf[DEFAULT_TEXT_BUF];
 	char *cptr = buf;
 
-	c = GetChar();
+	c = getChar();
 
 	while (c != '"' && cptr < &buf[sizeof(buf)])
 	{
@@ -475,7 +408,7 @@ int LexicalAnalzyer::getStringLiteral()
 
 		// build up our string, translating escape chars
 		*cptr++ = backslash(c);
-		c = GetChar();
+		c = getChar();
 	}
 
 	// make sure its asciiz
@@ -491,7 +424,7 @@ int LexicalAnalzyer::getStringLiteral()
 		sym->srcLine = getLineNumber();
 		sym->srcFile = getFile();
 
-		m_pParser->AddNewVar(sym);
+		m_pParser->addNewVar(sym);
 	}
 
 	m_yylval->sym = sym;
@@ -518,7 +451,7 @@ int LexicalAnalzyer::yylex()
 
 yylex01:
 	// skip any leading WS
-	chr = SkipLeadingWhiteSpace();
+	chr = skipLeadingWhiteSpace();
 	
 	// process Unix conf style comments
 /*
@@ -552,7 +485,7 @@ yylex01:
 	// look for a number value
 	if (isdigit(chr))
 	{
-		UnGetChar(chr);
+		ungetChar(chr);
 		return getNumber();
 	}
 
@@ -575,9 +508,9 @@ yylex01:
 		do 
 		{
 			*pBuf++ = ((char)chr);
-		} while ((chr = GetChar()) != EOF && isidval(chr));
+		} while ((chr = getChar()) != EOF && isidval(chr));
 		
-		UnGetChar(chr);
+		ungetChar(chr);
 	
 		// make sure its asciiz
 		*pBuf = 0;
@@ -612,7 +545,7 @@ yylex01:
 	// file descriptor stack and try to continue
 	case 0:
 	case EOF:
-		if (PopFile() == EOF)
+		if (popFile() == EOF)
 			return TV_DONE;
 
 		// call ourselves again to get the next token

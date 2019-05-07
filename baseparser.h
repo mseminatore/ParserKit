@@ -11,7 +11,6 @@
 #include "lexer.h"
 #include "symboltable.h"
 
-#define ARRAY_SIZE(p)	(size_t(sizeof(p) / sizeof(p[0])))
 #define SMALL_BUFFER	512
 
 //
@@ -31,10 +30,10 @@ protected:
 	int lookahead;
 	
 	// total error count
-	int m_iErrorCount;
+	unsigned m_errorCount;
 
 	// total warning count
-	int m_iWarningCount;
+	unsigned m_warningCount;
 
 	// our symbol table
 	std::unique_ptr<SymbolTable> m_pSymbolTable;
@@ -43,10 +42,8 @@ public:
 	BaseParser();
 	virtual ~BaseParser();
 
-	LexicalAnalzyer *GetLexer() const { return m_lexer.get(); }
-
-	int GetErrorCount()		{ return m_iErrorCount; }
-	int GetWarningCount()	{ return m_iWarningCount; }
+	unsigned getErrorCount()		{ return m_errorCount; }
+	unsigned getWarningCount()		{ return m_warningCount; }
 
 	virtual int Parse(const char *filename);
 	virtual int ParseData(char *textToParse, const char *fileName, void *pUserData);
@@ -75,7 +72,7 @@ public:
 	}
 
 	// callback from the lexer when new identifier is encountered
-	void AddNewVar(SymbolEntry *sym) {}
+	void addNewVar(SymbolEntry *sym) {}
 };
 
 #endif	//__BASEPARSER_H

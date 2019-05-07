@@ -57,24 +57,32 @@ union YYSTYPE
 class LexicalAnalzyer
 {
 protected:
+	// File descriptor node
 	struct FDNode
 	{
 		FILE *fdDocument;
 		char *pTextData;
-		char *filename;
+		std::string filename;
 		int column;
 		int yylineno;
 		void *pUserData;
+
+		FDNode() : fdDocument(nullptr), pTextData(nullptr), filename(""), column(0), yylineno(1), pUserData(nullptr) {}
+		virtual ~FDNode() 
+		{
+			if (fdDocument)
+				fclose(fdDocument);
+		}
 	};
 
-	int m_iTotalLinesCompiled;
+	int m_iTotalLinesParsed;
 	
-	char m_szCurrentSourceLineText[256];
-	int m_iCurrentSourceLineIndex;
+	//char m_szCurrentSourceLineText[256];
+	//int m_iCurrentSourceLineIndex;
 
 	// TODO - this should be a std::vector instead!
-	FDNode m_fdStack[20];
-	int m_iCurrentFD;
+	using FDStack = std::vector<FDNode>;
+	FDStack m_fdStack;
 
 	BaseParser *m_pParser;
 
@@ -95,24 +103,9 @@ protected:
 	using TokenTableMap = std::map<std::string, int, ltstr>;
 	TokenTableMap m_tokenTable;
 
-public:
-	LexicalAnalzyer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval);
-	virtual ~LexicalAnalzyer();
-
-	const char *GetCurrentSourceText() { return m_szCurrentSourceLineText; }
-	void ClearCurrentSourceText()		{ m_szCurrentSourceLineText[0] = 0; }
-
-	int SetFile(const char *theFile);
-	int SetData(char *theData, const char *fileName, void* pUserData);
-
-	int PopFile();
-	virtual void FreeData(void* pUserData);
-
-	const char *getFile() const { return m_fdStack[m_iCurrentFD].filename; }
-
 	// methods to help with lexical processing
 	// yylex() will use these to find tokens
-	int SkipLeadingWhiteSpace();
+	int skipLeadingWhiteSpace();
 	int follow(int expect, int ifyes, int ifno);
 	int backslash(int c);
 
@@ -124,19 +117,34 @@ public:
 	int getStringLiteral();
 	int getCharLiteral();
 	int getKeyword();
-	const char *GetLexemeFromToken(int token);
 
-	int GetChar();
-	int UnGetChar(int c);
+	int getChar();
+	int ungetChar(int c);
 
-	void CaseSensitive(bool onoff = true);
+public:
+	LexicalAnalzyer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval);
+	virtual ~LexicalAnalzyer() = default;
 
-	int getColumn()					{ return m_fdStack[m_iCurrentFD].column; }
-	int getLineNumber()				{ return m_fdStack[m_iCurrentFD].yylineno; }
-	int getTotalLinesCompiled()		{ return m_iTotalLinesCompiled; }
+	//const char *GetCurrentSourceText() { return m_szCurrentSourceLineText; }
+	//void ClearCurrentSourceText()		{ m_szCurrentSourceLineText[0] = 0; }
+
+	int setFile(const char *theFile);
+	int setData(char *theData, const char *fileName, void* pUserData);
+	virtual void freeData(void* pUserData);
+
+	int popFile();
+
+	std::string getFile() const { return m_fdStack.back().filename; }
+
+	const char *getLexemeFromToken(int token);
+
+	void caseSensitive(bool onoff = true);
+
+	int getColumn()					{ return m_fdStack.back().column; }
+	int getLineNumber()				{ return m_fdStack.back().yylineno; }
+	int getTotalLinesParsed()		{ return m_iTotalLinesParsed; }
 
 	// functions that may typically be overridden
-	virtual int GetToken();
 	virtual int yylex();
 	virtual void yyerror(const char *s);
 	virtual void yywarning(const char *s);

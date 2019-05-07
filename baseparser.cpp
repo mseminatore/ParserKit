@@ -9,8 +9,8 @@
 BaseParser::BaseParser()
 {
 	m_lexer			= nullptr;
-	m_iErrorCount	= 0;
-	m_iWarningCount = 0;
+	m_errorCount	= 0;
+	m_warningCount = 0;
 	m_pSymbolTable	= std::make_unique<SymbolTable>();
 }
 
@@ -30,9 +30,9 @@ void BaseParser::yyerror(const char *fmt, ...)
 		vsprintf_s(buf, fmt, argptr);
 	va_end(argptr);
 
-	sprintf_s(s, "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
+	sprintf_s(s, "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
-	m_iErrorCount++;
+	m_errorCount++;
 	OutputErrorMessage(s);
 }
 
@@ -52,9 +52,9 @@ void BaseParser::yywarning(const char *fmt, ...)
 		vsprintf_s(buf, fmt, argptr);
 	va_end(argptr);
 
-	sprintf_s(s, "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
+	sprintf_s(s, "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
-	m_iWarningCount++;
+	m_warningCount++;
 	OutputWarningMessage(s);
 }
 
@@ -88,7 +88,7 @@ void BaseParser::expected(int token)
 	if (token < 256)
 		yyerror("expected to see '%c'", token);
 	else
-		yyerror("expected to see '%s'", m_lexer->GetLexemeFromToken(token));
+		yyerror("expected to see '%s'", m_lexer->getLexemeFromToken(token));
 }
 
 //
@@ -126,7 +126,7 @@ int BaseParser::Parse(const char *filename)
 	_getdcwd(_getdrive(), oldWorkdingDir, sizeof(oldWorkdingDir));
 	_chdir(workingDir);
 
-	rv = m_lexer->SetFile(filename);
+	rv = m_lexer->setFile(filename);
 	if (rv != 0)
 	{
 		yyerror("Couldn't open file: %s", filename);
@@ -149,7 +149,7 @@ int BaseParser::ParseData(char *textToParse, const char *fileName, void *pUserDa
 
 	assert(textToParse);
 
-	rv = m_lexer->SetData(textToParse, fileName, pUserData);
+	rv = m_lexer->setData(textToParse, fileName, pUserData);
 	if (rv != 0)
 	{
 		yyerror("Couldn't parse text");		//open file: %s", filename);
