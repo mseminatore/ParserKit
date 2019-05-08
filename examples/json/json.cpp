@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	
 	parser.yydebug = g_bDebug;
 
-	parser.Parse(argv[iFirstArg]);
+	parser.parseFile(argv[iFirstArg]);
 
 	return 0;
 }

@@ -103,15 +103,16 @@ void BaseParser::match(int token)
 }
 
 //
-// this method is overridden in sub-classes 
+// this method does nothing and is meant to be overridden in sub-classes 
 //
-int BaseParser::DoToken(int token)
+int BaseParser::yyparse()
 {
+	lookahead = m_lexer->yylex();
 	return 0;
 }
 
 //
-int BaseParser::Parse(const char *filename)
+int BaseParser::parseFile (const char *filename)
 {
 	int rv;
 	char szFullPath[_MAX_PATH];
@@ -134,16 +135,15 @@ int BaseParser::Parse(const char *filename)
 		return rv;
 	}
 
-	lookahead = m_lexer->yylex();
-	
-	DoToken(lookahead);
+	// TODO - should return the value from yypars()
+	yyparse();
 
 	_chdir(oldWorkdingDir);
 	return 0;
 }
 
 //
-int BaseParser::ParseData(char *textToParse, const char *fileName, void *pUserData)
+int BaseParser::parseData(char *textToParse, const char *fileName, void *pUserData)
 {
 	int rv;
 
@@ -156,9 +156,8 @@ int BaseParser::ParseData(char *textToParse, const char *fileName, void *pUserDa
 		return rv;
 	}
 
-	lookahead = m_lexer->yylex();
-	
-	DoToken(lookahead);
+	// TODO - should return the value from yypars()
+	yyparse();
 
 	return 0;
 }

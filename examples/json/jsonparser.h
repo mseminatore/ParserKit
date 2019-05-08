@@ -11,7 +11,7 @@ public:
 	JSONParser();
 	virtual ~JSONParser();
 	
-	int DoToken(int token) override;
+	int yyparse() override;
 	void DoObject(JSONValue &node);
 	void DoArray(JSONValue &node);
 	void DoValue(JSONValue &node);

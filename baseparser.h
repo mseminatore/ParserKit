@@ -45,9 +45,9 @@ public:
 	unsigned getErrorCount()		{ return m_errorCount; }
 	unsigned getWarningCount()		{ return m_warningCount; }
 
-	virtual int Parse(const char *filename);
-	virtual int ParseData(char *textToParse, const char *fileName, void *pUserData);
-	virtual int DoToken(int token);
+	virtual int parseFile(const char *filename);
+	virtual int parseData(char *textToParse, const char *fileName, void *pUserData);
+	virtual int yyparse();
 
 	virtual void yyerror(const char *fmt, ...);
 	virtual void OutputErrorMessage(const char *msg);

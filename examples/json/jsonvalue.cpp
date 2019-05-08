@@ -1,6 +1,15 @@
 #include "jsonvalue.h"
 
 //
+void JSONValue::dumpAll()
+{
+	puts("\nDumping JSON entity");
+	puts("-------------------");
+
+	dump();
+}
+
+//
 void JSONValue::dump()
 {
 	switch (value_type)

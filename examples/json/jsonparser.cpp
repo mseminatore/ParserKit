@@ -165,13 +165,16 @@ void JSONParser::DoValue(JSONValue &node)
 //
 //
 //
-int JSONParser::DoToken(int token)
+int JSONParser::yyparse()
 {
+	BaseParser::yyparse();
+
 	JSONValue root;
 
 	DoValue(root);
 
-	root.dump();
+	if (yydebug)
+		root.dumpAll();
 
 	return 0;
 }

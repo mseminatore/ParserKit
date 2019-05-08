@@ -37,6 +37,7 @@ struct JSONValue
 	JSONValue(JSONValue&&) = default;
 	JSONValue &operator=(JSONValue&&) = default;
 
+	void dumpAll();
 	void dump();
 };
 
