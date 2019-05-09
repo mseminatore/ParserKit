@@ -10,17 +10,10 @@ static const char *_internalTokenLexemes[] =
 	"float value",
 	"char value",
 	"string literal",
-	"identifier",
-	"->",
-	"^",
-	">=",
-	"<=",
-	"==",
-	"!=",
-	"!",
-	"||",
-	"&&"
+	"identifier"
 };
+
+static_assert(ARRAY_SIZE(_internalTokenLexemes) == (TV_USER - TV_ERROR), "lexeme table mismatch");
 
 //======================================================================
 //
@@ -177,7 +170,7 @@ void LexicalAnalzyer::freeData(void *pUserData)
 // Begin processing the given file, pushing the current file onto the
 // file descriptor stack.
 //======================================================================
-int LexicalAnalzyer::setFile(const char *theFile)
+int LexicalAnalzyer::pushFile(const char *theFile)
 {
 	assert(theFile);
 

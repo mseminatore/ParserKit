@@ -128,13 +128,12 @@ public:
 	//const char *GetCurrentSourceText() { return m_szCurrentSourceLineText; }
 	//void ClearCurrentSourceText()		{ m_szCurrentSourceLineText[0] = 0; }
 
-	int setFile(const char *theFile);
+	int pushFile(const char *theFile);
+	int popFile();
+	std::string getFile() const { return m_fdStack.back().filename; }
+
 	int setData(char *theData, const char *fileName, void* pUserData);
 	virtual void freeData(void* pUserData);
-
-	int popFile();
-
-	std::string getFile() const { return m_fdStack.back().filename; }
 
 	const char *getLexemeFromToken(int token);
 

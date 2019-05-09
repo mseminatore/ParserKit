@@ -127,7 +127,7 @@ int BaseParser::parseFile (const char *filename)
 	_getdcwd(_getdrive(), oldWorkdingDir, sizeof(oldWorkdingDir));
 	_chdir(workingDir);
 
-	rv = m_lexer->setFile(filename);
+	rv = m_lexer->pushFile(filename);
 	if (rv != 0)
 	{
 		yyerror("Couldn't open file: %s", filename);
