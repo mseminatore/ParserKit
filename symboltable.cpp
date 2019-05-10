@@ -32,7 +32,7 @@ SymbolTable::SymbolTable()
 //======================================================================
 // Add another depth level to the symbol table
 //======================================================================
-void SymbolTable::Push()
+void SymbolTable::push()
 {
 	m_symbolTable.push_back(SymbolMap());
 }
@@ -40,7 +40,7 @@ void SymbolTable::Push()
 //======================================================================
 // Pop a level off the symbol table stack
 //======================================================================
-void SymbolTable::Pop()
+void SymbolTable::pop()
 {
 	m_symbolTable.pop_back();
 
@@ -51,7 +51,7 @@ void SymbolTable::Pop()
 //
 //
 //
-SymbolEntry *SymbolTable::GetFirstGlobal()
+SymbolEntry *SymbolTable::getFirstGlobal()
 {
 	stack_iterator iter = m_symbolTable.begin();
 	m_globalIter = (*iter).begin();
@@ -61,7 +61,7 @@ SymbolEntry *SymbolTable::GetFirstGlobal()
 //
 //
 //
-SymbolEntry *SymbolTable::GetNextGlobal()
+SymbolEntry *SymbolTable::getNextGlobal()
 {
 	m_globalIter++;
 	stack_iterator iter = begin_stack();
@@ -75,14 +75,14 @@ SymbolEntry *SymbolTable::GetNextGlobal()
 //
 //
 //
-const char *SymbolTable::GetTypeName(SymbolType st)
+const char *SymbolTable::getTypeName(SymbolType st)
 {
 	assert(st < stNumSymbolTypes);
 	return _typeStrings[st];
 }
 
 //
-void SymbolTable::DumpContents()
+void SymbolTable::dumpContents()
 {
 	char szText[256];
 	SymbolMap::iterator iter;
@@ -170,7 +170,7 @@ SymbolEntry *SymbolTable::install(const char *lexeme, SymbolType type)
 }
 
 //
-void SymbolTable::DumpUnreferencedSymbolsAtCurrentLevel()
+void SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 {
 	SymbolMap::iterator iter;
 	SymbolStack::reverse_iterator current_level_riter = m_symbolTable.rbegin();

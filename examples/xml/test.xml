@@ -1,0 +1,4 @@
+<document>
+    <br/>
+    <button OnClick="btnClick" id="OKButton">OK</button>
+</document>

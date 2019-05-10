@@ -60,15 +60,15 @@ struct SymbolEntry
 class SymbolTable
 {
 protected:
-	typedef std::map<std::string, SymbolEntry> SymbolMap;
-	typedef std::list<SymbolMap> SymbolStack;
+	using SymbolMap = std::map<std::string, SymbolEntry>;
+	using SymbolStack = std::list<SymbolMap>;
 
 	SymbolStack m_symbolTable;
 	SymbolEntry *m_pCurrentSymbol;
 
 public:
-	typedef SymbolStack::iterator stack_iterator;
-	typedef SymbolMap::iterator map_iterator;
+	using stack_iterator = SymbolStack::iterator;
+	using map_iterator = SymbolMap::iterator;
 
 protected:
 	map_iterator m_globalIter;
@@ -81,20 +81,20 @@ public:
 	SymbolEntry *reverse_lookup(int ival);
 	SymbolEntry *install(const char *lexeme, SymbolType type);
 	
-	SymbolEntry *GetFirstGlobal();
-	SymbolEntry *GetNextGlobal();
+	SymbolEntry *getFirstGlobal();
+	SymbolEntry *getNextGlobal();
 
 	// iterators for accessing the symbol table stack
 	stack_iterator begin_stack()	{ return m_symbolTable.begin(); }
 	stack_iterator end_stack()		{ return m_symbolTable.end(); }
 
-	const char *GetTypeName(SymbolType st);
+	const char *getTypeName(SymbolType st);
 
-	void Push();
-	void Pop();
+	void push();
+	void pop();
 
-	void DumpContents();
-	void DumpUnreferencedSymbolsAtCurrentLevel();
+	void dumpContents();
+	void dumpUnreferencedSymbolsAtCurrentLevel();
 };
 
 #endif	// __SYMBOL_H
