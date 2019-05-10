@@ -416,8 +416,6 @@ int LexicalAnalzyer::getStringLiteral()
 
 		sym->srcLine = getLineNumber();
 		sym->srcFile = getFile();
-
-		m_pParser->addNewVar(sym);
 	}
 
 	m_yylval->sym = sym;
@@ -521,7 +519,7 @@ yylex01:
 		{
 			sym = m_pParser->installSymbol(buf, stUndef);
 			if (!sym)
-				yyerror("making finding table entry");
+				yyerror("making symbol table entry");
 
 			sym->srcLine = getLineNumber();
 			sym->srcFile = getFile();

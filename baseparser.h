@@ -39,7 +39,7 @@ protected:
 	std::unique_ptr<SymbolTable> m_pSymbolTable;
 
 public:
-	BaseParser();
+	BaseParser(std::unique_ptr<SymbolTable> symbolTable);
 	virtual ~BaseParser();
 
 	unsigned getErrorCount()		{ return m_errorCount; }
@@ -50,15 +50,11 @@ public:
 	virtual int yyparse();
 
 	virtual void yyerror(const char *fmt, ...);
-	virtual void OutputErrorMessage(const char *msg);
-
 	virtual void yywarning(const char *fmt, ...);
-	virtual void OutputWarningMessage(const char *msg);
+	virtual void yylog(const char *fmt, ...);
 
 	virtual void expected(int token);
 	virtual void match(int token);
-
-	virtual void yylog(const char *fmt, ...);
 
 	// these methods delegate their work to the symbol table object
 	SymbolEntry *installSymbol(char *lexeme, SymbolType st = stUndef)
@@ -70,9 +66,6 @@ public:
 	{
 		return m_pSymbolTable->lookup(lexeme);
 	}
-
-	// callback from the lexer when new identifier is encountered
-	void addNewVar(SymbolEntry *sym) {}
 };
 
 #endif	//__BASEPARSER_H

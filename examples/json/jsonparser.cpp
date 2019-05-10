@@ -26,17 +26,9 @@ TokenTable _tokenTable[] =
 //
 //
 //
-JSONParser::JSONParser() : BaseParser()
+JSONParser::JSONParser() : BaseParser(std::make_unique<SymbolTable>())
 {
 	m_lexer = std::make_unique<LexicalAnalzyer>(_tokenTable, this, &yylval);
-}
-
-//
-//
-//
-JSONParser::~JSONParser() 
-{
-
 }
 
 //

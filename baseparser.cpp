@@ -6,12 +6,12 @@
 //======================================================================
 //
 //======================================================================
-BaseParser::BaseParser()
+BaseParser::BaseParser(std::unique_ptr<SymbolTable> symbolTable)
 {
 	m_lexer			= nullptr;
 	m_errorCount	= 0;
-	m_warningCount = 0;
-	m_pSymbolTable	= std::make_unique<SymbolTable>();
+	m_warningCount	= 0;
+	m_pSymbolTable = std::move(symbolTable);
 }
 
 //
@@ -33,13 +33,9 @@ void BaseParser::yyerror(const char *fmt, ...)
 	sprintf_s(s, "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
 	m_errorCount++;
-	OutputErrorMessage(s);
-}
 
-// delegate error messages to the lexical analyzer
-void BaseParser::OutputErrorMessage(const char *msg)
-{
-	m_lexer->yyerror(msg);
+	// delegate error messages to the lexical analyzer
+	m_lexer->yyerror(s);
 }
 
 // print a warning message
@@ -55,13 +51,9 @@ void BaseParser::yywarning(const char *fmt, ...)
 	sprintf_s(s, "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
 	m_warningCount++;
-	OutputWarningMessage(s);
-}
 
-//
-void BaseParser::OutputWarningMessage(const char *msg)
-{
-	m_lexer->yywarning(msg);
+	// delegate error messages to the lexical analyzer
+	m_lexer->yywarning(s);
 }
 
 //
