@@ -54,7 +54,7 @@ public:
 	virtual void yylog(const char *fmt, ...);
 
 	virtual void expected(int token);
-	virtual void match(int token);
+	virtual int match(int token);
 
 	// these methods delegate their work to the symbol table object
 	SymbolEntry *installSymbol(char *lexeme, SymbolType st = stUndef)

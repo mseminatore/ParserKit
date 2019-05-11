@@ -86,10 +86,13 @@ void BaseParser::expected(int token)
 //
 // attempt to match the given token
 //
-void BaseParser::match(int token)
+int BaseParser::match(int token)
 {
 	if (lookahead == token)
+	{
 		lookahead = m_lexer->yylex();
+		return lookahead;
+	}
 	else
 		expected(token);
 }

@@ -1,0 +1,10 @@
+%token NUM CHAR
+%token FOO
+
+%%
+
+start: NUM
+    | NUM '+' NUM
+    ;
+
+%%
