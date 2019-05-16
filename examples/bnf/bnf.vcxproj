@@ -146,12 +146,14 @@
     <ClCompile Include="..\..\lexer.cpp" />
     <ClCompile Include="..\..\symboltable.cpp" />
     <ClCompile Include="bnf.cpp" />
+    <ClCompile Include="bnflexer.cpp" />
     <ClCompile Include="bnfparser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\baseparser.h" />
     <ClInclude Include="..\..\lexer.h" />
     <ClInclude Include="..\..\symboltable.h" />
+    <ClInclude Include="bnflexer.h" />
     <ClInclude Include="bnfparser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

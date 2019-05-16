@@ -1,3 +1,7 @@
+%{
+/* include files and global decls go here */
+%}
+
 %token NUM CHAR
 %token FOO
 
@@ -6,5 +10,8 @@
 start: NUM
     | NUM '+' NUM
     ;
+
+bar: foobar
+	;
 
 %%

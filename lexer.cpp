@@ -1,4 +1,3 @@
-
 #include "baseparser.h"
 
 //
@@ -36,11 +35,16 @@ LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	compare_function	= _stricmp;
 	m_bCaseInsensitive	= true;
 
+	// setup lexical analysis defaults
+	m_bUnixComments		= false;
+	m_bCPPComments		= false;
+	m_bCStyleComments	= false;
+
 	//m_iCurrentSourceLineIndex = -1;
 }
 
 //======================================================================
-//
+// Return the next character from the input
 //======================================================================
 int LexicalAnalzyer::getChar()
 {
@@ -64,7 +68,7 @@ int LexicalAnalzyer::getChar()
 }
 
 //======================================================================
-//
+// Put the character back to the input
 //======================================================================
 int LexicalAnalzyer::ungetChar(int c)
 {
@@ -430,6 +434,29 @@ int LexicalAnalzyer::getKeyword()
 	return 0;
 }
 
+//
+//
+//
+int LexicalAnalzyer::specialTokens(int chr)
+{
+	switch (chr)
+	{
+		// we reached end of current file, but could be a nested include so pop
+		// file descriptor stack and try to continue
+	case 0:
+	case EOF:
+		if (popFile() == EOF)
+			return TV_DONE;
+
+		// call ourselves again to get the next token
+		return yylex();
+
+	default:
+		return chr;
+	}
+
+}
+
 //======================================================================
 // Generic Lexical analyzer routine
 //======================================================================
@@ -445,15 +472,14 @@ yylex01:
 	chr = skipLeadingWhiteSpace();
 	
 	// process Unix conf style comments
-/*
-	if (chr == '#')
+	if (m_bUnixComments && chr == '#')
 	{
 		skipToEOL();
 		goto yylex01;
 	}
-*/
+
 	// handle C++ style comments
-	if (chr == '/')
+	if (m_bCPPComments && chr == '/')
 	{
 		if (follow('/', 1, 0))
 		{
@@ -463,7 +489,7 @@ yylex01:
 	}
 
 	// handle C style comments
-	if (chr == '/')
+	if (m_bCStyleComments && chr == '/')
 	{
 		if (follow('*', 1, 0))
 		{
@@ -471,7 +497,6 @@ yylex01:
 			goto yylex01;
 		}
 	}
-
 
 	// look for a number value
 	if (isdigit(chr))
@@ -530,20 +555,6 @@ yylex01:
 		return TV_ID;
 	}
 
-	switch(chr)
-	{
-	// we reached end of current file, but could be a nested include so pop
-	// file descriptor stack and try to continue
-	case 0:
-	case EOF:
-		if (popFile() == EOF)
-			return TV_DONE;
-
-		// call ourselves again to get the next token
-		return yylex();
-
-	default:
-		return chr;
-	}
+	return specialTokens(chr);
 }
 

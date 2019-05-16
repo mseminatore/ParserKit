@@ -88,6 +88,10 @@ protected:
 
 	YYSTYPE *m_yylval;
 
+	bool m_bUnixComments;
+	bool m_bCPPComments;
+	bool m_bCStyleComments;
+
 	bool m_bCaseInsensitive;
 
 	int (*compare_function)(const char*, const char*);
@@ -143,12 +147,17 @@ public:
 	int getLineNumber()				{ return m_fdStack.back().yylineno; }
 	int getTotalLinesParsed()		{ return m_iTotalLinesParsed; }
 
+	void setUnixComments(bool onoff)	{ m_bUnixComments = onoff; }
+	void setCPPComments(bool onoff)		{ m_bCPPComments = onoff; }
+	void setCStyleComments(bool onoff)	{ m_bCStyleComments = onoff; }
+
 	// functions that may typically be overridden
 	virtual int yylex();
 	virtual void yyerror(const char *s);
 	virtual void yywarning(const char *s);
 	virtual bool isidval(int c);
 	virtual bool iswhitespace(int c);
+	virtual int specialTokens(int chr);
 };
 
 #endif	//#ifndef __LEXER_H

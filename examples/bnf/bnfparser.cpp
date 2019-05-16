@@ -2,12 +2,7 @@
 // This parser parses BNF files
 //
 #include "bnfparser.h"
-
-enum
-{
-	// pre-processor
-	TV_TOKEN = TV_USER,
-};
+#include "bnflexer.h"
 
 //
 // Table of lexemes and tokens to be recognized by the lexer
@@ -15,6 +10,9 @@ enum
 TokenTable _tokenTable[] =
 {
 	{ "token",	TV_TOKEN },
+	{ "%%",		TV_PERCENTS},
+	{ "%{",		TV_PERCENT_LBRACE },
+	{ "%}",		TV_PERCENT_RBRACE },
 
 	{ nullptr,	TV_DONE }
 };
@@ -24,33 +22,36 @@ TokenTable _tokenTable[] =
 //
 BNFParser::BNFParser() : BaseParser(std::make_unique<SymbolTable>())
 {
-	m_lexer = std::make_unique<LexicalAnalzyer>(_tokenTable, this, &yylval);
+	m_lexer = std::make_unique<BNFLexer>(_tokenTable, this, &yylval);
 }
 
 //
 void BNFParser::DoRules()
 {
-	// match the non-terminal name
-	yylog("Found non-terminal: %s", yylval.sym->lexeme.c_str());
-
-	match(TV_ID);
-
-	match(':');
-
-	// match one or more rules
-	do 
+	while (lookahead == TV_ID)
 	{
-		// a rule is zero or more symbols. Symbols are non-terminals and/or terminals (ie. tokens)
-		while (lookahead == TV_ID || lookahead == TV_CHARVAL)
+		// match the non-terminal name
+		yylog("Found non-terminal: %s", yylval.sym->lexeme.c_str());
+
+		match(TV_ID);
+
+		match(':');
+
+		// match one or more rules
+		do
 		{
-			match(lookahead);
-		}
+			// a rule is zero or more symbols. Symbols are non-terminals and/or terminals (ie. tokens)
+			while (lookahead == TV_ID || lookahead == TV_CHARVAL)
+			{
+				match(lookahead);
+			}
 
-		// TODO - add rule to our list of rules
+			// TODO - add rule to our list of rules
 
-	} while (lookahead == '|' && match('|'));
+		} while (lookahead == '|' && match('|'));
 
-	match(';');
+		match(';');
+	}
 }
 
 //
@@ -69,6 +70,7 @@ void BNFParser::DoTokens()
 		{
 			// TODO - set the type to stToken
 			// TODO - assign an enumeration value to the token
+			tokens.push_back(yylval.sym->lexeme);
 
 			match(TV_ID);
 		}
@@ -82,15 +84,28 @@ int BNFParser::yyparse()
 {
 	BaseParser::yyparse();
 
+	if (lookahead == TV_PERCENT_LBRACE)
+	{
+		match(lookahead);
+
+		// TODO - copy contents to output file
+
+		match(TV_PERCENT_RBRACE);
+	}
+
 	DoTokens();
 	
-	match('%');
-	match('%');
+	match(TV_PERCENTS);
 
 	DoRules();
 
-	match('%');
-	match('%');
+	match(TV_PERCENTS);
+
+	auto iter = tokens.begin();
+	for (; iter != tokens.end(); iter++)
+	{
+		printf("Token: %s\n", iter->c_str());
+	}
 
 	return 0;
 }
