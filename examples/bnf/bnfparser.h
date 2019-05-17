@@ -12,6 +12,8 @@ protected:
 
 	using TokenList = std::vector<std::string>;
 	TokenList tokens;
+	
+	void OutputTokens();
 
 public:
 	BNFParser();

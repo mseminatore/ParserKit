@@ -78,6 +78,20 @@ void BNFParser::DoTokens()
 }
 
 //
+void BNFParser::OutputTokens()
+{
+	puts("enum Class Tokens {");
+
+	auto iter = tokens.begin();
+	for (; iter != tokens.end(); iter++)
+	{
+		printf("%s,\n", iter->c_str());
+	}
+
+	puts("};");
+}
+
+//
 //
 //
 int BNFParser::yyparse()
@@ -100,12 +114,8 @@ int BNFParser::yyparse()
 	DoRules();
 
 	match(TV_PERCENTS);
-
-	auto iter = tokens.begin();
-	for (; iter != tokens.end(); iter++)
-	{
-		printf("Token: %s\n", iter->c_str());
-	}
+	
+	OutputTokens();
 
 	return 0;
 }

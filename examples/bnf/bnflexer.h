@@ -15,7 +15,8 @@ class BNFLexer : public LexicalAnalzyer
 public:
 	BNFLexer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval) : LexicalAnalzyer(atokenTable, pParser, pyylval) 
 	{
-		m_bCStyleComments = true;
+		m_bCStyleComments	= true;
+		m_bCharLiterals		= true;
 	}
 
 	int specialTokens(int chr) override;

@@ -39,6 +39,8 @@ LexicalAnalzyer::LexicalAnalzyer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	m_bUnixComments		= false;
 	m_bCPPComments		= false;
 	m_bCStyleComments	= false;
+	m_bHexNumbers		= false;
+	m_bCharLiterals		= false;
 
 	//m_iCurrentSourceLineIndex = -1;
 }
