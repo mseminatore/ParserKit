@@ -7,7 +7,7 @@
 //
 // Table of lexemes and tokens to be recognized by the lexer
 //
-TokenTable _tokenTable[] =
+static TokenTable _tokenTable[] =
 {
 	{ "token",	TV_TOKEN },
 	{ "%%",		TV_PERCENTS},

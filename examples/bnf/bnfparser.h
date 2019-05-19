@@ -10,6 +10,7 @@ protected:
 	using Rules = std::map<std::string, RuleList>;
 	Rules rules;
 
+	// the list of tokens
 	using TokenList = std::vector<std::string>;
 	TokenList tokens;
 	
