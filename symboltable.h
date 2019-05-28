@@ -31,7 +31,7 @@ struct SymbolEntry
 	int				srcLine;
 	std::string		srcFile;
 
-	unsigned			isReferenced:1;
+	unsigned		isReferenced:1;
 	
 	// if this symbol represents a literal value 
 	union

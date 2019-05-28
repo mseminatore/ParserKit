@@ -125,7 +125,7 @@ const char *LexicalAnalzyer::getLexemeFromToken(int token)
 	if (token > 255 && token < TV_USER)
 		return _internalTokenLexemes[token - 256];
 
-	TokenTableMap::iterator iter = m_tokenTable.begin();
+	auto iter = m_tokenTable.begin();
 	for (; iter != m_tokenTable.end(); iter++)
 	{
 		if (iter->second == token)

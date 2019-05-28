@@ -11,7 +11,8 @@ start: NUM
     | NUM '+' NUM
     ;
 
-bar: foobar
+bar:
+	| foobar
 	;
 
 %%

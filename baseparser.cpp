@@ -91,10 +91,13 @@ int BaseParser::match(int token)
 	if (lookahead == token)
 	{
 		lookahead = m_lexer->yylex();
-		return lookahead;
 	}
 	else
+	{
 		expected(token);
+	}
+
+	return lookahead;
 }
 
 //
