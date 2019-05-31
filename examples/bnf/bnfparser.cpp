@@ -113,7 +113,7 @@ void BNFParser::DoTokens()
 //
 void BNFParser::OutputTokens()
 {
-	puts("enum Class Tokens {");
+	puts("enum Class Tokens {\nERROR = 256,");
 
 	auto iter = tokens.begin();
 	for (; iter != tokens.end(); iter++)
@@ -125,7 +125,7 @@ void BNFParser::OutputTokens()
 }
 
 //
-void BNFParser::GenerateTable()
+void BNFParser::OutputProductions()
 {
 	auto iter = productions.begin();
 	for (; iter != productions.end(); iter++)
@@ -140,6 +140,40 @@ void BNFParser::GenerateTable()
 		}
 
 		puts(";");
+	}
+}
+
+//
+//for each production X->Y1Y2...Yk
+//	if Y1...Yk are all nullable(or if k = 0)
+//		then nullable[X] = true
+//	for each i from 1 to k, each j from i + 1 to k
+//		if Y1...Yi - 1 are all nullable(or if i = 1)
+//			then FIRST[X] = FIRST[X] u FIRST[Yi]
+//		if Yi + 1...Yk are all nullable(or if i = k)
+//			then FOLLOW[Yi] = FOLLOW[Yi] u FOLLOW[X]
+//		if Yi + 1...Yj - 1 are all nullable(or if i + 1 = j)
+//			then FOLLOW[Yi] = FOLLOW[Yi] u FIRST[Yj]
+//
+void BNFParser::GenerateTable()
+{
+	auto prodIter = productions.begin();
+	for (; prodIter != productions.end(); prodIter++)
+	{
+		Production prod = *prodIter;
+
+		auto symbols = prod.second.begin();
+		if (symbols == prod.second.end())
+			nullable.insert(prod.first);
+		else
+		{
+			auto allNullable = true;
+			for (; symbols != prod.second.end(); symbols++)
+			{
+				//if (nullable.find(symbols->name) != prod.second.end())
+				//	nullable.insert(prod.first);
+			}
+		}
 	}
 }
 
