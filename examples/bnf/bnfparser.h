@@ -36,9 +36,9 @@ protected:
 	std::set<std::string> nullable;
 
 	using TerminalSets = std::map<std::string, std::set<std::string>>;
-	TerminalSets first;
-	TerminalSets follow;
+	TerminalSets first, follow;
 
+	void ComputeNullable();
 	void GenerateTable();
 	void OutputTokens();
 	void OutputProductions();

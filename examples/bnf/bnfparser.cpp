@@ -145,8 +145,6 @@ void BNFParser::OutputProductions()
 
 //
 //for each production X->Y1Y2...Yk
-//	if Y1...Yk are all nullable(or if k = 0)
-//		then nullable[X] = true
 //	for each i from 1 to k, each j from i + 1 to k
 //		if Y1...Yi - 1 are all nullable(or if i = 1)
 //			then FIRST[X] = FIRST[X] u FIRST[Yi]
@@ -157,24 +155,94 @@ void BNFParser::OutputProductions()
 //
 void BNFParser::GenerateTable()
 {
-	auto prodIter = productions.begin();
-	for (; prodIter != productions.end(); prodIter++)
-	{
-		Production prod = *prodIter;
+	ComputeNullable();
 
-		auto symbols = prod.second.begin();
-		if (symbols == prod.second.end())
-			nullable.insert(prod.first);
-		else
+	// for all Terminals, First[T] = {T}
+	auto tokenIter = tokens.begin();
+	for (; tokenIter != tokens.end(); tokenIter++)
+	{
+		first[*tokenIter].insert(*tokenIter);
+	}
+
+	auto done = true;
+
+	do
+	{
+		done = true;
+
+		auto prodIter = productions.begin();
+		for (; prodIter != productions.end(); prodIter++)
 		{
-			auto allNullable = true;
-			for (; symbols != prod.second.end(); symbols++)
+			Production prod = *prodIter;
+
+			auto nullSoFar = true;
+			for (auto i = 0; i < prod.second.size(); i++)
 			{
-				//if (nullable.find(symbols->name) != prod.second.end())
-				//	nullable.insert(prod.first);
+				auto rhs = prod.second[i];
+
+				if (nullable.find(rhs.name) == nullable.end())
+					nullSoFar = false;
+
+				// insert first[Yi] into first[X]
+				if (rhs.type == SymbolType::Terminal || 0 == i || nullSoFar)
+				{
+					auto rhsSet = first[rhs.name];
+
+					for (auto i = rhsSet.begin(); i != rhsSet.end(); i++)
+					{
+						auto result = first[prod.first].insert(*i);
+						if (result.second)
+							done = false;
+					}
+				}
 			}
 		}
-	}
+	} while (!done);
+}
+
+//
+//for each production X->Y1Y2...Yk
+//	if Y1...Yk are all nullable(or if k = 0)
+//		then nullable[X] = true
+//
+void BNFParser::ComputeNullable()
+{
+	auto done = true;
+
+	do
+	{
+		done = true;
+
+		auto prodIter = productions.begin();
+		for (; prodIter != productions.end(); prodIter++)
+		{
+			Production prod = *prodIter;
+
+			auto symbols = prod.second.begin();
+			if (symbols == prod.second.end())
+			{
+				auto result = nullable.insert(prod.first);
+				if (result.second)
+					done = false;
+			}
+			else
+			{
+				auto nullableCount = 0;
+				for (; symbols != prod.second.end(); symbols++)
+				{
+					if (nullable.find(symbols->name) != nullable.end())
+						nullableCount++;
+				}
+
+				if (nullableCount == prod.second.size())
+				{
+					auto result = nullable.insert(prod.first);
+					if (result.second)
+						done = false;
+				}
+			}
+		}
+	} while (!done);
 }
 
 //

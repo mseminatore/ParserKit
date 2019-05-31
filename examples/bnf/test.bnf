@@ -7,12 +7,21 @@
 
 %%
 
-start: NUM
+start: /* nothing! */
+	| NUM
     | NUM '+' NUM
     ;
 
-bar:
-	| foobar
+term: zoo NUM
+	;
+
+foobar: bar zoo
+	;
+
+zoo: /* nothing! */
+	;
+
+bar: /* nothing! */
 	;
 
 %%
