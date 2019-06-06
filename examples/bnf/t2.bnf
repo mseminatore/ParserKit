@@ -1,0 +1,28 @@
+%{
+/* include files and global decls go here */
+%}
+
+%token NUM CHAR
+%token FOO
+
+%%
+
+start: /* nothing! */
+	| NUM
+    | NUM '+' NUM
+	| term
+    ;
+
+term: zoo NUM
+	;
+
+foobar: bar zoo
+	;
+
+zoo: /* nothing! */
+	;
+
+bar: /* nothing! */
+	;
+
+%%

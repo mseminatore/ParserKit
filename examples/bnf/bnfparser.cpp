@@ -144,19 +144,50 @@ void BNFParser::OutputProductions()
 }
 
 //
-//for each production X->Y1Y2...Yk
-//	for each i from 1 to k, each j from i + 1 to k
-//		if Y1...Yi - 1 are all nullable(or if i = 1)
-//			then FIRST[X] = FIRST[X] u FIRST[Yi]
-//		if Yi + 1...Yk are all nullable(or if i = k)
-//			then FOLLOW[Yi] = FOLLOW[Yi] u FOLLOW[X]
-//		if Yi + 1...Yj - 1 are all nullable(or if i + 1 = j)
-//			then FOLLOW[Yi] = FOLLOW[Yi] u FIRST[Yj]
+//
 //
 void BNFParser::GenerateTable()
 {
 	ComputeNullable();
 
+	ComputeFirst();
+	ComputeFollow();
+
+	for (auto iter = nullable.begin(); iter != nullable.end(); iter++)
+	{
+		printf("%s nullable\n", (*iter).c_str());
+	}
+
+	for (auto iter = first.begin(); iter != first.end(); iter++)
+	{
+		printf("First %s: ", iter->first.c_str());
+		for (auto rhs = iter->second.begin(); rhs != iter->second.end(); rhs++)
+		{
+			printf("%s ", (*rhs).c_str());
+		}
+		puts("");
+	}
+
+	for (auto iter = follow.begin(); iter != follow.end(); iter++)
+	{
+		printf("Follow %s: ", iter->first.c_str());
+		for (auto rhs = iter->second.begin(); rhs != iter->second.end(); rhs++)
+		{
+			printf("%s ", (*rhs).c_str());
+		}
+		puts("");
+	}
+
+}
+
+//
+//for each production X->Y1Y2...Yk
+//	for each i from 1 to k, each j from i + 1 to k
+//		if Y1...Yi - 1 are all nullable(or if i = 1)
+//			then FIRST[X] = FIRST[X] u FIRST[Yi]
+//
+void BNFParser::ComputeFirst()
+{
 	// for all Terminals, First[T] = {T}
 	auto tokenIter = tokens.begin();
 	for (; tokenIter != tokens.end(); tokenIter++)
@@ -170,33 +201,84 @@ void BNFParser::GenerateTable()
 	{
 		done = true;
 
+		// foreach production
 		auto prodIter = productions.begin();
 		for (; prodIter != productions.end(); prodIter++)
 		{
 			Production prod = *prodIter;
 
 			auto nullSoFar = true;
-			for (auto i = 0; i < prod.second.size(); i++)
+
+			// foreach symbol
+			for (auto symbolIndex = 0; symbolIndex < prod.second.size(); symbolIndex++)
 			{
-				auto rhs = prod.second[i];
+				auto rhs = prod.second[symbolIndex];
 
 				if (nullable.find(rhs.name) == nullable.end())
 					nullSoFar = false;
 
 				// insert first[Yi] into first[X]
-				if (rhs.type == SymbolType::Terminal || 0 == i || nullSoFar)
+				if (rhs.type == SymbolType::Terminal || 0 == symbolIndex || nullSoFar)
 				{
 					auto rhsSet = first[rhs.name];
 
-					for (auto i = rhsSet.begin(); i != rhsSet.end(); i++)
+					for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
 					{
-						auto result = first[prod.first].insert(*i);
+						auto result = first[prod.first].insert(*rhsIter);
 						if (result.second)
 							done = false;
 					}
 				}
 			}
 		}
+	} while (!done);
+}
+
+//
+//for each production X->Y1Y2...Yk
+//	for each i from 1 to k, each j from i + 1 to k
+//		if Yi + 1...Yk are all nullable(or if i = k)
+//			then FOLLOW[Yi] = FOLLOW[Yi] u FOLLOW[X]
+//		if Yi + 1...Yj - 1 are all nullable(or if i + 1 = j)
+//			then FOLLOW[Yi] = FOLLOW[Yi] u FIRST[Yj]
+//
+void BNFParser::ComputeFollow()
+{
+	auto done = true;
+
+	do
+	{
+		done = true;
+
+		// foreach production
+		auto prodIter = productions.begin();
+		for (; prodIter != productions.end(); prodIter++)
+		{
+			Production prod = *prodIter;
+		
+			auto nullSoFar = true;
+
+			// foreach symbol
+			for (auto symbolIndex = 1; symbolIndex < prod.second.size(); symbolIndex++)
+			{
+				auto rhs = prod.second[symbolIndex];
+
+				if (nullable.find(rhs.name) == nullable.end())
+					nullSoFar = false;
+
+				if (symbolIndex == prod.second.size() || nullSoFar)
+				{
+					auto rhsSet = follow[prod.first];
+					for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
+					{
+						auto result = follow[rhs.name].insert(*rhsIter);
+						if (result.second)
+							done = false;
+					}
+				}
+			}
+		}
+
 	} while (!done);
 }
 

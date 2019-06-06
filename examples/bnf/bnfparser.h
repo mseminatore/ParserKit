@@ -39,6 +39,9 @@ protected:
 	TerminalSets first, follow;
 
 	void ComputeNullable();
+	void ComputeFirst();
+	void ComputeFollow();
+
 	void GenerateTable();
 	void OutputTokens();
 	void OutputProductions();

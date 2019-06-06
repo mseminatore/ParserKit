@@ -2,26 +2,21 @@
 /* include files and global decls go here */
 %}
 
-%token NUM CHAR
-%token FOO
+%token a c
+%token d
 
 %%
 
-start: /* nothing! */
-	| NUM
-    | NUM '+' NUM
-    ;
-
-term: zoo NUM
+Z: d
+	| X Y Z
 	;
 
-foobar: bar zoo
+Y: /* nothing */
+	| c
 	;
 
-zoo: /* nothing! */
-	;
-
-bar: /* nothing! */
+X: Y
+	| a
 	;
 
 %%
