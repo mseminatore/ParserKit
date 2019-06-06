@@ -17,11 +17,6 @@ protected:
 		std::string name;
 	};
 
-	// 
-	//using RuleList = std::vector<int>;
-	//using Rules = std::map<std::string, RuleList>;
-	//Rules rules;
-
 	using SymbolList = std::vector<Symbol>;
 	using Production = std::pair<std::string, SymbolList>;
 	using Productions = std::vector<Production>;
@@ -45,6 +40,7 @@ protected:
 	void GenerateTable();
 	void OutputTokens();
 	void OutputProductions();
+	bool AreAllNullable(int start, int end, const SymbolList &symbols);
 
 public:
 	BNFParser();

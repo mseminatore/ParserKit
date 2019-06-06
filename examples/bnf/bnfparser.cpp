@@ -101,10 +101,7 @@ void BNFParser::DoTokens()
 
 		while (lookahead == TV_ID)
 		{
-			// TODO - set the type to stToken
-			// TODO - assign an enumeration value to the token
 			tokens.insert(yylval.sym->lexeme);
-
 			match(TV_ID);
 		}
 	}
@@ -148,6 +145,9 @@ void BNFParser::OutputProductions()
 //
 void BNFParser::GenerateTable()
 {
+	// TODO - look for first/first conflicts
+	// TODO - make sure all Nonterminals are on lhs of a production
+
 	ComputeNullable();
 
 	ComputeFirst();
@@ -235,6 +235,23 @@ void BNFParser::ComputeFirst()
 }
 
 //
+bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
+{
+	bool allNullable = true;
+
+	for (auto i = start; i < end; i++)
+	{
+		if (nullable.find(symbols[i].name) == nullable.end())
+			allNullable = false;
+	}
+
+	if (allNullable)
+		return true;
+	else
+		return false;
+}
+
+//
 //for each production X->Y1Y2...Yk
 //	for each i from 1 to k, each j from i + 1 to k
 //		if Yi + 1...Yk are all nullable(or if i = k)
@@ -256,24 +273,35 @@ void BNFParser::ComputeFollow()
 		{
 			Production prod = *prodIter;
 		
-			auto nullSoFar = true;
-
 			// foreach symbol
-			for (auto symbolIndex = 1; symbolIndex < prod.second.size(); symbolIndex++)
+			for (auto i = 0; i < prod.second.size(); i++)
 			{
-				auto rhs = prod.second[symbolIndex];
+				auto rhs = prod.second;
 
-				if (nullable.find(rhs.name) == nullable.end())
-					nullSoFar = false;
-
-				if (symbolIndex == prod.second.size() || nullSoFar)
+				if (rhs[i].type != SymbolType::Terminal && (i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
 				{
+					// insert follow[X] in follow[Yi]
 					auto rhsSet = follow[prod.first];
 					for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
 					{
-						auto result = follow[rhs.name].insert(*rhsIter);
+						auto result = follow[rhs[i].name].insert(*rhsIter);
 						if (result.second)
 							done = false;
+					}
+				}
+
+				for (auto j = i + 1; j < prod.second.size(); j++)
+				{
+					if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
+					{
+						// insert first[Yj] in follow[Yi]
+						auto rhsSet = first[prod.second[j].name];
+						for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
+						{
+							auto result = follow[rhs[i].name].insert(*rhsIter);
+							if (result.second)
+								done = false;
+						}
 					}
 				}
 			}
