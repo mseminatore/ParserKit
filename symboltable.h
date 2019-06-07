@@ -6,7 +6,7 @@
 //
 //
 //
-enum SymbolType
+enum
 {
 	stUndef,
 
@@ -16,9 +16,12 @@ enum SymbolType
 	stInteger, 
 	stChar, 
 	stDefine,
+	stUser,
 
 	stNumSymbolTypes
 };
+
+using SymbolType = int;
 
 //
 //
@@ -51,6 +54,28 @@ struct SymbolEntry
 		ival			= 0;
 		type			= stUndef;
 		isReferenced	= 0;
+	}
+};
+
+//
+struct Position
+{
+	int				srcLine;
+	std::string		srcFile;
+	int				srcColumn;
+
+	Position(std::string &file, int line, int col)
+	{
+		srcLine = line;
+		srcFile = file;
+		srcColumn = col;
+	}
+
+	Position(const SymbolEntry *sym)
+	{
+		srcLine = sym->srcLine;
+		srcFile = sym->srcFile;
+		srcColumn = 0;
 	}
 };
 

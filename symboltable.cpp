@@ -14,7 +14,8 @@ static const char *_typeStrings[] =
 	"float",
 	"int", 
 	"char", 
-	"define"
+	"define",
+	"user-defined"
 };
 
 // ensure that the array matches the enumeration
@@ -67,7 +68,7 @@ SymbolEntry *SymbolTable::getNextGlobal()
 	stack_iterator iter = begin_stack();
 
 	if (m_globalIter == (*iter).end())
-		return NULL;
+		return nullptr;
 
 	return &m_globalIter->second;
 }
@@ -123,7 +124,7 @@ SymbolEntry *SymbolTable::lookup(const char *lexeme)
 	}
 
 	// symbol was not found anywhere in the table
-	return NULL;
+	return nullptr;
 }
 
 //===============================================================
@@ -145,7 +146,7 @@ SymbolEntry *SymbolTable::reverse_lookup(int ival)
 	}
 
 	// symbol was not found anywhere in the table
-	return NULL;
+	return nullptr;
 }
 
 //======================================================================

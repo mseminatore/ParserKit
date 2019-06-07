@@ -25,7 +25,7 @@ protected:
 
 	// the list of terminals
 	using TokenSet = std::set<std::string>;
-	TokenSet tokens;
+	TokenSet tokens, nonTerminals;
 
 	//
 	std::set<std::string> nullable;

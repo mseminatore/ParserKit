@@ -17,6 +17,11 @@ static TokenTable _tokenTable[] =
 	{ nullptr,	TV_DONE }
 };
 
+enum {
+	stNonTerminal = stUser,
+	stTerminal
+};
+
 //
 //
 //
@@ -33,12 +38,19 @@ void BNFParser::DoRules()
 	// a production starts with a non-terminal LHS
 	while (lookahead == TV_ID)
 	{
-		std::string nonTerminal;
+		std::string lhs;
 
 		SymbolList rhs;
 
 		// match the non-terminal name
-		nonTerminal = yylval.sym->lexeme;
+		yylval.sym->type = stNonTerminal;
+		lhs = yylval.sym->lexeme;
+
+		// TODO - error if we see the same nonTerminal more than once!?
+		auto result = nonTerminals.insert(lhs);
+		if (!result.second)
+			yyerror("Duplicate non-terminal (%s) found on LHS of rules!", lhs.c_str());
+
 		yylog("Found non-terminal: %s", yylval.sym->lexeme.c_str());
 
 		match(TV_ID);
@@ -64,10 +76,12 @@ void BNFParser::DoRules()
 				{
 					symbol.type = SymbolType::Terminal;
 					symbol.name = yylval.sym->lexeme;
+					yylval.sym->type = stTerminal;
 				}
 				else {
 					symbol.type = SymbolType::Nonterminal;
 					symbol.name = yylval.sym->lexeme;
+					yylval.sym->type = stNonTerminal;
 				}
 
 				rhs.push_back(symbol);
@@ -76,7 +90,7 @@ void BNFParser::DoRules()
 			}
 
 			// add production to our list of productions
-			Production prod(nonTerminal, rhs);
+			Production prod(lhs, rhs);
 			productions.push_back(prod);
 
 		} while (lookahead == '|' && match('|'));
@@ -112,10 +126,16 @@ void BNFParser::OutputTokens()
 {
 	puts("enum Class Tokens {\nERROR = 256,");
 
-	auto iter = tokens.begin();
-	for (; iter != tokens.end(); iter++)
+	// output all the Terminals
+	for (auto iter = tokens.begin(); iter != tokens.end(); iter++)
 	{
-		printf("%s,\n", iter->c_str());
+		printf("\t%s,\n", iter->c_str());
+	}
+
+	// output all the non-Terminals
+	for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
+	{
+		printf("\t%s,\n", iter->c_str());
 	}
 
 	puts("};");
@@ -146,7 +166,18 @@ void BNFParser::OutputProductions()
 void BNFParser::GenerateTable()
 {
 	// TODO - look for first/first conflicts
-	// TODO - make sure all Nonterminals are on lhs of a production
+	
+	// make sure all Nonterminals are on lhs of a production
+	auto sym = m_pSymbolTable->getFirstGlobal();
+	while (sym)
+	{
+		if (sym->type == stNonTerminal && nonTerminals.find(sym->lexeme) == nonTerminals.end())
+		{
+			yywarning(Position(sym), "Non-terminal (%s) missing from left-hand side rule", sym->lexeme.c_str());
+		}
+
+		sym = m_pSymbolTable->getNextGlobal();
+	};
 
 	ComputeNullable();
 
@@ -155,7 +186,7 @@ void BNFParser::GenerateTable()
 
 	for (auto iter = nullable.begin(); iter != nullable.end(); iter++)
 	{
-		printf("%s nullable\n", (*iter).c_str());
+		printf("%s is nullable\n", (*iter).c_str());
 	}
 
 	for (auto iter = first.begin(); iter != first.end(); iter++)
@@ -178,6 +209,45 @@ void BNFParser::GenerateTable()
 		puts("");
 	}
 
+	// foreach production
+	for (auto iter = productions.begin(); iter != productions.end(); iter++)
+	{
+		auto lhs = iter->first;
+		auto rhs = iter->second;
+		
+		for (auto termIter = tokens.begin(); termIter != tokens.end(); termIter++)
+		{
+			auto Yi = rhs[0].name;
+			auto T = first.find(Yi);
+
+			if (T->first == *termIter)
+			{
+				printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
+				for (auto i = rhs.begin(); i != rhs.end(); i++)
+				{
+					printf("%s ", i->name.c_str());
+				}
+				puts("");
+			}
+		}
+	}
+}
+
+//
+bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
+{
+	bool allNullable = true;
+
+	for (auto i = start; i < end; i++)
+	{
+		if (nullable.find(symbols[i].name) == nullable.end())
+			allNullable = false;
+	}
+
+	if (allNullable)
+		return true;
+	else
+		return false;
 }
 
 //
@@ -232,23 +302,6 @@ void BNFParser::ComputeFirst()
 			}
 		}
 	} while (!done);
-}
-
-//
-bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
-{
-	bool allNullable = true;
-
-	for (auto i = start; i < end; i++)
-	{
-		if (nullable.find(symbols[i].name) == nullable.end())
-			allNullable = false;
-	}
-
-	if (allNullable)
-		return true;
-	else
-		return false;
 }
 
 //
@@ -380,6 +433,8 @@ int BNFParser::yyparse()
 	match(TV_PERCENTS);
 	
 	OutputTokens();
+	OutputProductions();
+
 	GenerateTable();
 
 	return 0;

@@ -21,6 +21,24 @@ BaseParser::~BaseParser()
 }
 
 // the parser calls this method to report errors
+void BaseParser::yyerror(const Position &pos, const char *fmt, ...)
+{
+	char buf[SMALL_BUFFER], s[SMALL_BUFFER];
+	va_list argptr;
+
+	va_start(argptr, fmt);
+	vsprintf_s(buf, fmt, argptr);
+	va_end(argptr);
+
+	sprintf_s(s, "%s(%d) : error near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
+
+	m_errorCount++;
+
+	// delegate error messages to the lexical analyzer
+	m_lexer->yyerror(s);
+}
+
+// the parser calls this method to report errors
 void BaseParser::yyerror(const char *fmt, ...)
 {
 	char buf[SMALL_BUFFER], s[SMALL_BUFFER];
@@ -36,6 +54,24 @@ void BaseParser::yyerror(const char *fmt, ...)
 
 	// delegate error messages to the lexical analyzer
 	m_lexer->yyerror(s);
+}
+
+// print a warning message
+void BaseParser::yywarning(const Position &pos, const char *fmt, ...)
+{
+	char buf[SMALL_BUFFER], s[SMALL_BUFFER];
+	va_list argptr;
+
+	va_start(argptr, fmt);
+	vsprintf_s(buf, fmt, argptr);
+	va_end(argptr);
+
+	sprintf_s(s, "%s(%d) : warning near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
+
+	m_warningCount++;
+
+	// delegate error messages to the lexical analyzer
+	m_lexer->yywarning(s);
 }
 
 // print a warning message

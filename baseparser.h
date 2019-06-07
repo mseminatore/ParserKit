@@ -50,7 +50,11 @@ public:
 	virtual int yyparse();
 
 	virtual void yyerror(const char *fmt, ...);
+	virtual void yyerror(const Position &pos, const char *fmt, ...);
+
 	virtual void yywarning(const char *fmt, ...);
+	virtual void yywarning(const Position &pos, const char *fmt, ...);
+
 	virtual void yylog(const char *fmt, ...);
 
 	virtual void expected(int token);
