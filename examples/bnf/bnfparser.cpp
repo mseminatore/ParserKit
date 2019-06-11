@@ -217,10 +217,9 @@ void BNFParser::GenerateTable()
 		
 		for (auto termIter = tokens.begin(); termIter != tokens.end(); termIter++)
 		{
-			auto Yi = rhs[0].name;
-			auto T = first.find(Yi);
+			auto followSet = follow.find(lhs)->second;
 
-			if (T->first == *termIter)
+			if (AreAllNullable(0, rhs.size(), rhs) &&  followSet.find(*termIter) != followSet.end())
 			{
 				printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
 				for (auto i = rhs.begin(); i != rhs.end(); i++)
@@ -228,6 +227,22 @@ void BNFParser::GenerateTable()
 					printf("%s ", i->name.c_str());
 				}
 				puts("");
+
+			}
+
+			if (rhs.size()) {
+				auto Yi = rhs[0].name;
+				auto firstSet = first.find(Yi)->second;
+
+				if (firstSet.find(*termIter) != firstSet.end())
+				{
+					printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
+					for (auto i = rhs.begin(); i != rhs.end(); i++)
+					{
+						printf("%s ", i->name.c_str());
+					}
+					puts("");
+				}
 			}
 		}
 	}
