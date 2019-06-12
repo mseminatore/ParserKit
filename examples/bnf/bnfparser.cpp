@@ -71,6 +71,9 @@ void BNFParser::DoRules()
 				{
 					symbol.name = yylval.char_val;
 					symbol.type = SymbolType::Terminal;
+
+					// character values are terminal symbols
+					terminals.insert(symbol.name);
 				}
 				else if (tokens.find(yylval.sym->lexeme) != tokens.end())
 				{
@@ -116,6 +119,10 @@ void BNFParser::DoTokens()
 		while (lookahead == TV_ID)
 		{
 			tokens.insert(yylval.sym->lexeme);
+
+			// all tokens are terminals
+			terminals.insert(yylval.sym->lexeme);
+
 			match(TV_ID);
 		}
 	}
@@ -215,7 +222,7 @@ void BNFParser::GenerateTable()
 		auto lhs = iter->first;
 		auto rhs = iter->second;
 		
-		for (auto termIter = tokens.begin(); termIter != tokens.end(); termIter++)
+		for (auto termIter = terminals.begin(); termIter != terminals.end(); termIter++)
 		{
 			auto followSet = follow.find(lhs)->second;
 
@@ -229,19 +236,23 @@ void BNFParser::GenerateTable()
 				puts("");
 
 			}
-
-			if (rhs.size()) {
-				auto Yi = rhs[0].name;
-				auto firstSet = first.find(Yi)->second;
-
-				if (firstSet.find(*termIter) != firstSet.end())
+			else
+			{
+				for (auto i = 0; i < rhs.size(); i++)
 				{
-					printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
-					for (auto i = rhs.begin(); i != rhs.end(); i++)
+					auto Yi = rhs[i].name;
+					auto firstSet = first.find(Yi)->second;
+
+					if (firstSet.find(*termIter) != firstSet.end())
 					{
-						printf("%s ", i->name.c_str());
+						printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
+						for (auto i = rhs.begin(); i != rhs.end(); i++)
+						{
+							printf("%s ", i->name.c_str());
+						}
+						puts("");
+						break;
 					}
-					puts("");
 				}
 			}
 		}
@@ -274,10 +285,10 @@ bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
 void BNFParser::ComputeFirst()
 {
 	// for all Terminals, First[T] = {T}
-	auto tokenIter = tokens.begin();
-	for (; tokenIter != tokens.end(); tokenIter++)
+	auto terminalIter = terminals.begin();
+	for (; terminalIter != terminals.end(); terminalIter++)
 	{
-		first[*tokenIter].insert(*tokenIter);
+		first[*terminalIter].insert(*terminalIter);
 	}
 
 	auto done = true;
@@ -303,7 +314,7 @@ void BNFParser::ComputeFirst()
 					nullSoFar = false;
 
 				// insert first[Yi] into first[X]
-				if (rhs.type == SymbolType::Terminal || 0 == symbolIndex || nullSoFar)
+				if (/*rhs.type == SymbolType::Terminal || */ 0 == symbolIndex || nullSoFar)
 				{
 					auto rhsSet = first[rhs.name];
 
@@ -346,7 +357,9 @@ void BNFParser::ComputeFollow()
 			{
 				auto rhs = prod.second;
 
-				if (rhs[i].type != SymbolType::Terminal && (i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
+				// TODO - this code seems wrong
+
+				if (/*rhs[i].type != SymbolType::Terminal && */ (i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
 				{
 					// insert follow[X] in follow[Yi]
 					auto rhsSet = follow[prod.first];
@@ -358,6 +371,7 @@ void BNFParser::ComputeFollow()
 					}
 				}
 
+				// TODO - this code seems wrong
 				for (auto j = i + 1; j < prod.second.size(); j++)
 				{
 					if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
@@ -451,6 +465,8 @@ int BNFParser::yyparse()
 	OutputProductions();
 
 	GenerateTable();
+
+	// TODO - copy tail of file to output
 
 	return 0;
 }

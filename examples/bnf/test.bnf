@@ -2,21 +2,29 @@
 /* include files and global decls go here */
 %}
 
-%token a c
-%token d
+%token a c d
 
 %%
+/*
+S: F
+	| '(' S '+' F ')'
+	;
+
+F: a
+	;
+*/
 
 Z: d
 	| X Y Z
 	;
 
-Y: /* nothing */
+Y:
 	| c
 	;
 
 X: Y
 	| a
 	;
+
 
 %%
