@@ -1,0 +1,33 @@
+%{
+/* include files and global decls go here */
+%}
+
+%token id num
+
+%%
+
+S: E
+	;
+
+E: T EP
+	;
+
+EP: '+' T EP
+	| '-' T EP
+	|
+	;
+
+T: F TP
+	;
+
+TP: '*' F TP
+	| '/' F TP
+	|
+	;
+
+F: id
+	| num
+	| '(' E ')'
+	;
+
+%%

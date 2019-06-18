@@ -226,7 +226,7 @@ void BNFParser::GenerateTable()
 		{
 			auto followSet = follow.find(lhs)->second;
 
-			if (AreAllNullable(0, rhs.size(), rhs) &&  followSet.find(*termIter) != followSet.end())
+			if (AreAllNullable(0, rhs.size(), rhs) && followSet.find(*termIter) != followSet.end())
 			{
 				printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
 				for (auto i = rhs.begin(); i != rhs.end(); i++)
@@ -270,7 +270,7 @@ bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
 			allNullable = false;
 	}
 
-	if (allNullable)
+	if (allNullable && end > start)
 		return true;
 	else
 		return false;
@@ -356,16 +356,18 @@ void BNFParser::ComputeFollow()
 			for (auto i = 0; i < prod.second.size(); i++)
 			{
 				auto rhs = prod.second;
+				auto Yi = rhs[i].name;
 
-				// TODO - this code seems wrong
+					// TODO - this code seems wrong
 
-				if (/*rhs[i].type != SymbolType::Terminal && */ (i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
+				if ((i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
 				{
 					// insert follow[X] in follow[Yi]
-					auto rhsSet = follow[prod.first];
-					for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
+					auto X = prod.first;
+					auto followSet = follow[X];
+					for (auto rhsIter = followSet.begin(); rhsIter != followSet.end(); rhsIter++)
 					{
-						auto result = follow[rhs[i].name].insert(*rhsIter);
+						auto result = follow[Yi].insert(*rhsIter);
 						if (result.second)
 							done = false;
 					}
@@ -377,10 +379,11 @@ void BNFParser::ComputeFollow()
 					if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
 					{
 						// insert first[Yj] in follow[Yi]
-						auto rhsSet = first[prod.second[j].name];
-						for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
+						auto Yj = prod.second[j].name;
+						auto firstSet = first[Yj];
+						for (auto rhsIter = firstSet.begin(); rhsIter != firstSet.end(); rhsIter++)
 						{
-							auto result = follow[rhs[i].name].insert(*rhsIter);
+							auto result = follow[Yi].insert(*rhsIter);
 							if (result.second)
 								done = false;
 						}
