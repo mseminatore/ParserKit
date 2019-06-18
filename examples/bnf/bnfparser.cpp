@@ -222,37 +222,38 @@ void BNFParser::GenerateTable()
 		auto lhs = iter->first;
 		auto rhs = iter->second;
 		
-		for (auto termIter = terminals.begin(); termIter != terminals.end(); termIter++)
-		{
-			auto followSet = follow.find(lhs)->second;
+		auto followSet = follow.find(lhs)->second;
 
-			if (AreAllNullable(0, rhs.size(), rhs) && followSet.find(*termIter) != followSet.end())
+		if (AreAllNullable(0, rhs.size(), rhs))
+		{
+			for (auto followy = followSet.begin(); followy != followSet.end(); followy++)
 			{
-				printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
+//				parseTable[lhs][*followy].
+
+				printf("(%s, %s): %s -> ", lhs.c_str(), (*followy).c_str(), lhs.c_str());
 				for (auto i = rhs.begin(); i != rhs.end(); i++)
 				{
 					printf("%s ", i->name.c_str());
 				}
 				puts("");
-
 			}
-			else
-			{
-				for (auto i = 0; i < rhs.size(); i++)
-				{
-					auto Yi = rhs[i].name;
-					auto firstSet = first.find(Yi)->second;
+		}
 
-					if (firstSet.find(*termIter) != firstSet.end())
+		// (X, T) = production X -> Y for each T in FIRST[Yi]
+//		if (rhs.size())
+		for (auto i = 0; i < rhs.size(); i++)
+		{
+			auto firstSet = first.find(rhs[i].name)->second;
+			for (auto firsty = firstSet.begin(); firsty != firstSet.end(); firsty++)
+			{
+				if (terminals.find(*firsty) != terminals.end())
+				{
+					printf("(%s, %s): %s -> ", lhs.c_str(), (*firsty).c_str(), lhs.c_str());
+					for (auto i = rhs.begin(); i != rhs.end(); i++)
 					{
-						printf("(%s, %s): %s -> ", lhs.c_str(), termIter->c_str(), lhs.c_str());
-						for (auto i = rhs.begin(); i != rhs.end(); i++)
-						{
-							printf("%s ", i->name.c_str());
-						}
-						puts("");
-						break;
+						printf("%s ", i->name.c_str());
 					}
+					puts("");
 				}
 			}
 		}
@@ -260,7 +261,7 @@ void BNFParser::GenerateTable()
 }
 
 //
-bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
+bool BNFParser::AreAllNullable(size_t start, size_t end, const SymbolList &symbols)
 {
 	bool allNullable = true;
 
@@ -270,7 +271,7 @@ bool BNFParser::AreAllNullable(int start, int end, const SymbolList &symbols)
 			allNullable = false;
 	}
 
-	if (allNullable && end > start)
+	if (allNullable)
 		return true;
 	else
 		return false;

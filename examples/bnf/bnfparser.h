@@ -27,6 +27,8 @@ protected:
 	using TokenSet = std::set<std::string>;
 	TokenSet tokens, terminals, nonTerminals;
 
+	std::map<std::string, std::map<std::string, std::string>> parseTable;
+
 	//
 	std::set<std::string> nullable;
 
@@ -40,7 +42,7 @@ protected:
 	void GenerateTable();
 	void OutputTokens();
 	void OutputProductions();
-	bool AreAllNullable(int start, int end, const SymbolList &symbols);
+	bool AreAllNullable(size_t start, size_t end, const SymbolList &symbols);
 
 public:
 	BNFParser();
