@@ -70,7 +70,7 @@ void BNFParser::DoRules()
 				if (lookahead == TV_CHARVAL)
 				{
 					symbol.name = yylval.char_val;
-					symbol.type = SymbolType::Terminal;
+					symbol.type = SymbolType::CharTerminal;
 
 					// character values are terminal symbols
 					terminals.insert(symbol.name);
@@ -134,15 +134,17 @@ void BNFParser::OutputTokens()
 	puts("enum Class Tokens {\nERROR = 256,");
 
 	// output all the Terminals
+	puts("// Terminals");
 	for (auto iter = tokens.begin(); iter != tokens.end(); iter++)
 	{
-		printf("\t%s,\n", iter->c_str());
+		printf("\tTS_%s,\n", iter->c_str());
 	}
 
 	// output all the non-Terminals
+	puts("// Non-Terminals");
 	for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
 	{
-		printf("\t%s,\n", iter->c_str());
+		printf("\tNTS_%s,\n", iter->c_str());
 	}
 
 	puts("};");
@@ -228,7 +230,12 @@ void BNFParser::GenerateTable()
 		{
 			for (auto followy = followSet.begin(); followy != followSet.end(); followy++)
 			{
-//				parseTable[lhs][*followy].
+				auto result = parseTable[lhs].insert(std::pair<std::string, SymbolList>(*followy, rhs));
+				if (!result.second)
+				{
+					auto sym = m_pSymbolTable->lookup(lhs.c_str());
+					yywarning(Position(sym), "Conflict! Production for non-terminal %s is ambiguous.", lhs.c_str());
+				}
 
 				printf("(%s, %s): %s -> ", lhs.c_str(), (*followy).c_str(), lhs.c_str());
 				for (auto i = rhs.begin(); i != rhs.end(); i++)
@@ -240,21 +247,54 @@ void BNFParser::GenerateTable()
 		}
 
 		// (X, T) = production X -> Y for each T in FIRST[Yi]
-//		if (rhs.size())
-		for (auto i = 0; i < rhs.size(); i++)
+		if (rhs.size())
 		{
-			auto firstSet = first.find(rhs[i].name)->second;
+			auto firstSet = first.find(rhs[0].name)->second;
 			for (auto firsty = firstSet.begin(); firsty != firstSet.end(); firsty++)
 			{
 				if (terminals.find(*firsty) != terminals.end())
 				{
-					printf("(%s, %s): %s -> ", lhs.c_str(), (*firsty).c_str(), lhs.c_str());
-					for (auto i = rhs.begin(); i != rhs.end(); i++)
+					auto result = parseTable[lhs].insert(std::pair<std::string, SymbolList>(*firsty, rhs));
+					if (!result.second)
 					{
-						printf("%s ", i->name.c_str());
+						auto sym = m_pSymbolTable->lookup(lhs.c_str());
+						yywarning(Position(sym), "Conflict! Production for non-terminal %s is ambiguous.", lhs.c_str());
+					}
+
+					printf("(%s, %s): %s -> ", lhs.c_str(), (*firsty).c_str(), lhs.c_str());
+					for (auto rhsIter = rhs.begin(); rhsIter != rhs.end(); rhsIter++)
+					{
+						printf("%s ", rhsIter->name.c_str());
 					}
 					puts("");
 				}
+			}
+		}
+	}
+
+	// write out the parser table
+	auto index = 1;
+	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
+	{
+		auto entry = *nt;
+		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
+		{
+			printf("\ttable[%s][%s] = %d;\n", entry.first.c_str(), t->first.c_str(), index++);
+		}
+	}
+
+	index = 1;
+	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
+	{
+		auto entry = *nt;
+		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
+		{
+			printf("case %d:\n", index++);
+
+			puts("\tss.pop();");
+			for (auto i = t->second.rbegin(); i != t->second.rend(); i++)
+			{
+				printf("\tss.push(%s);\n", i->name.c_str());
 			}
 		}
 	}
@@ -315,7 +355,7 @@ void BNFParser::ComputeFirst()
 					nullSoFar = false;
 
 				// insert first[Yi] into first[X]
-				if (/*rhs.type == SymbolType::Terminal || */ 0 == symbolIndex || nullSoFar)
+				if (0 == symbolIndex || nullSoFar)
 				{
 					auto rhsSet = first[rhs.name];
 
@@ -359,34 +399,34 @@ void BNFParser::ComputeFollow()
 				auto rhs = prod.second;
 				auto Yi = rhs[i].name;
 
-					// TODO - this code seems wrong
-
-				if ((i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
+				if (rhs[i].type == SymbolType::Nonterminal)
 				{
-					// insert follow[X] in follow[Yi]
-					auto X = prod.first;
-					auto followSet = follow[X];
-					for (auto rhsIter = followSet.begin(); rhsIter != followSet.end(); rhsIter++)
+					if ((i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
 					{
-						auto result = follow[Yi].insert(*rhsIter);
-						if (result.second)
-							done = false;
-					}
-				}
-
-				// TODO - this code seems wrong
-				for (auto j = i + 1; j < prod.second.size(); j++)
-				{
-					if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
-					{
-						// insert first[Yj] in follow[Yi]
-						auto Yj = prod.second[j].name;
-						auto firstSet = first[Yj];
-						for (auto rhsIter = firstSet.begin(); rhsIter != firstSet.end(); rhsIter++)
+						// insert follow[X] in follow[Yi]
+						auto X = prod.first;
+						auto followSet = follow[X];
+						for (auto rhsIter = followSet.begin(); rhsIter != followSet.end(); rhsIter++)
 						{
 							auto result = follow[Yi].insert(*rhsIter);
 							if (result.second)
 								done = false;
+						}
+					}
+
+					for (auto j = i + 1; j < prod.second.size(); j++)
+					{
+						if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
+						{
+							// insert first[Yj] in follow[Yi]
+							auto Yj = prod.second[j].name;
+							auto firstSet = first[Yj];
+							for (auto rhsIter = firstSet.begin(); rhsIter != firstSet.end(); rhsIter++)
+							{
+								auto result = follow[Yi].insert(*rhsIter);
+								if (result.second)
+									done = false;
+							}
 						}
 					}
 				}

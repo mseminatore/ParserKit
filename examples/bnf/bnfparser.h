@@ -9,6 +9,7 @@ protected:
 	enum class SymbolType
 	{
 		Terminal,
+		CharTerminal,
 		Nonterminal
 	};
 
@@ -27,7 +28,7 @@ protected:
 	using TokenSet = std::set<std::string>;
 	TokenSet tokens, terminals, nonTerminals;
 
-	std::map<std::string, std::map<std::string, std::string>> parseTable;
+	std::map<std::string, std::map<std::string, SymbolList>> parseTable;
 
 	//
 	std::set<std::string> nullable;
