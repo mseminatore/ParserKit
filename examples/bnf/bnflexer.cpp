@@ -19,6 +19,6 @@ int BNFLexer::specialTokens(int chr)
 	}
 
 	// we didn't find any of our special tokens so give our parent a chance
-	return LexicalAnalzyer::specialTokens(chr);
+	return LexicalAnalyzer::specialTokens(chr);
 }
 

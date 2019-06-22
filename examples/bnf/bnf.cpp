@@ -12,7 +12,10 @@
 //
 // Command line switches
 //
-bool g_bDebug = false;
+static bool g_bDebug = false;
+static FILE *yyout = stdout;
+static FILE *yyhout = stdout;
+static std::string outputFile = "ytab";
 
 //
 // show usage
@@ -33,6 +36,16 @@ int getopt(int n, char *args[])
 	{
 		if (args[i][1] == 'v')
 			g_bDebug = true;
+
+		if (args[i][1] == 'o')
+		{
+			outputFile = args[++i];
+			std::string file = outputFile + ".cpp";
+			yyout = fopen(file.c_str(), "wt");
+
+			file = outputFile + ".h";
+			yyhout = fopen(file.c_str(), "wt");
+		}
 	}
 
 	return i;
@@ -51,6 +64,9 @@ int main(int argc, char* argv[])
 	BNFParser parser;
 
 	parser.yydebug = g_bDebug;
+	parser.yyout = yyout;
+	parser.yyhout = yyhout;
+	parser.setFileName(outputFile);
 
 	parser.parseFile(argv[iFirstArg]);
 

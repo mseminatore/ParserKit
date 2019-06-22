@@ -131,23 +131,29 @@ void BNFParser::DoTokens()
 //
 void BNFParser::OutputTokens()
 {
-	puts("enum Class Tokens {\nERROR = 256,");
+	fputs("#include \"tableparser.h\"\n\n", yyhout);
+	fputs("enum Class Tokens {\n\tERROR = 256,\n", yyhout);
 
 	// output all the Terminals
-	puts("// Terminals");
+	fputs("\t// Terminal symbols\n", yyhout);
 	for (auto iter = tokens.begin(); iter != tokens.end(); iter++)
 	{
-		printf("\tTS_%s,\n", iter->c_str());
+		fprintf(yyhout, "\tTS_%s,\n", iter->c_str());
 	}
 
 	// output all the non-Terminals
-	puts("// Non-Terminals");
+	fputs("\t// Non-Terminal symbols\n", yyhout);
 	for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
 	{
-		printf("\tNTS_%s,\n", iter->c_str());
+		fprintf(yyhout, "\tNTS_%s,\n", iter->c_str());
 	}
 
-	puts("};");
+	fputs("};\n\n", yyhout);
+
+	fprintf(yyhout, "class %s : public tableparser {\n", outputFileName.c_str());
+	fputs("\tvoid initTable() override;\n", yyhout);
+	fputs("\tvoid yyrule(int rule) override;\n", yyhout);
+	fputs("};\n", yyhout);
 }
 
 //
@@ -272,6 +278,9 @@ void BNFParser::GenerateTable()
 		}
 	}
 
+	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
+	fprintf(yyout, "void %s::initTable() {\n", outputFileName.c_str());
+
 	// write out the parser table
 	auto index = 1;
 	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
@@ -279,9 +288,21 @@ void BNFParser::GenerateTable()
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
-			printf("\ttable[%s][%s] = %d;\n", entry.first.c_str(), t->first.c_str(), index++);
+			char *prefix = "", *postfix = "";
+			auto sym = m_pSymbolTable->lookup(t->first.c_str());
+			if (!sym)
+			{
+				prefix = postfix = "'";
+			}
+
+			fprintf(yyout, "\ttable[%s][%s%s%s] = %d;\n", entry.first.c_str(), prefix, t->first.c_str(), postfix, index++);
 		}
 	}
+
+	fputs("}\n\n", yyout);
+
+	fprintf(yyout, "void %s::yyrule(int rule) {\n", outputFileName.c_str());
+	fprintf(yyout, "\tswitch (rule) {\n");
 
 	index = 1;
 	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
@@ -289,15 +310,30 @@ void BNFParser::GenerateTable()
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
-			printf("case %d:\n", index++);
+			fprintf(yyout, "\tcase %d:\n", index++);
 
-			puts("\tss.pop();");
+			fputs("\t\tss.pop();\n", yyout);
 			for (auto i = t->second.rbegin(); i != t->second.rend(); i++)
 			{
-				printf("\tss.push(%s);\n", i->name.c_str());
+				char *prefix = "TS_", *postfix = "";
+
+				if (i->type == SymbolType::Nonterminal)
+					prefix = "NTS_";
+
+				if (i->type == SymbolType::CharTerminal)
+				{
+					postfix = prefix = "'";
+				}
+
+				fprintf(yyout, "\t\tss.push(%s%s%s);\n", prefix, i->name.c_str(), postfix);
 			}
+			fputs("\t\tbreak;\n\n", yyout);
 		}
 	}
+
+	fputs("\tdefault:\n\t\tyyerror(\"parsing table defaulted\");\n\t\treturn 0;\n\t\tbreak;\n", yyout);
+	fputs("\t}\n", yyout);
+	fputs("}\n", yyout);
 }
 
 //
@@ -493,6 +529,7 @@ int BNFParser::yyparse()
 		match(lookahead);
 
 		// TODO - copy contents to output file
+//		m_lexer->copyUntilChar('%', 0, yyout);
 
 		match(TV_PERCENT_RBRACE);
 	}
@@ -510,7 +547,8 @@ int BNFParser::yyparse()
 
 	GenerateTable();
 
-	// TODO - copy tail of file to output
+	// TODO copy tail of file to output
+//	m_lexer->copyToEOF(yyout);
 
 	return 0;
 }

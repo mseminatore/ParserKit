@@ -54,7 +54,7 @@ union YYSTYPE
 //
 //
 //
-class LexicalAnalzyer
+class LexicalAnalyzer
 {
 protected:
 	// File descriptor node
@@ -128,8 +128,8 @@ protected:
 	int ungetChar(int c);
 
 public:
-	LexicalAnalzyer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval);
-	virtual ~LexicalAnalzyer() = default;
+	LexicalAnalyzer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval);
+	virtual ~LexicalAnalyzer() = default;
 
 	//const char *GetCurrentSourceText() { return m_szCurrentSourceLineText; }
 	//void ClearCurrentSourceText()		{ m_szCurrentSourceLineText[0] = 0; }
@@ -154,6 +154,9 @@ public:
 	void setCStyleComments(bool onoff)	{ m_bCStyleComments = onoff; }
 	void setHexNumbers(bool onoff)		{ m_bHexNumbers = onoff; }
 	void setCharLiterals(bool onoff)	{ m_bCharLiterals = onoff; }
+
+	void copyToEOF(FILE *fout);
+	void copyUntilChar(int endChar, int nestChar, FILE *fout);
 
 	// functions that may typically be overridden
 	virtual int yylex();

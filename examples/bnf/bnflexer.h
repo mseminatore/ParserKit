@@ -10,10 +10,10 @@ enum {
 };
 
 //
-class BNFLexer : public LexicalAnalzyer
+class BNFLexer : public LexicalAnalyzer
 {
 public:
-	BNFLexer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval) : LexicalAnalzyer(atokenTable, pParser, pyylval) 
+	BNFLexer(TokenTable *atokenTable, BaseParser *pParser, YYSTYPE *pyylval) : LexicalAnalyzer(atokenTable, pParser, pyylval) 
 	{
 		m_bCStyleComments	= true;
 		m_bCharLiterals		= true;

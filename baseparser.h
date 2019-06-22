@@ -18,10 +18,12 @@ class BaseParser
 {
 public:
 	bool yydebug = false;
+	FILE *yyout = stdout;
+	FILE *yyhout = stdout;
 
 protected:
 	// the lexical analyzer
-	std::unique_ptr<LexicalAnalzyer> m_lexer;
+	std::unique_ptr<LexicalAnalyzer> m_lexer;
 
 	// the value filled in by the lexical analyzer
 	YYSTYPE yylval;
@@ -37,6 +39,8 @@ protected:
 
 	// our symbol table
 	std::unique_ptr<SymbolTable> m_pSymbolTable;
+
+	std::string outputFileName;
 
 public:
 	BaseParser(std::unique_ptr<SymbolTable> symbolTable);
@@ -59,6 +63,11 @@ public:
 
 	virtual void expected(int token);
 	virtual int match(int token);
+
+	void setFileName(std::string &str)
+	{
+		outputFileName = str;
+	}
 
 	// these methods delegate their work to the symbol table object
 	SymbolEntry *installSymbol(char *lexeme, SymbolType st = stUndef)

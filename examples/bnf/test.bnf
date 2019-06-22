@@ -1,5 +1,9 @@
 %{
-/* include files and global decls go here */
+
+/*
+#include <stdio.h>
+*/
+
 %}
 
 %token a 
@@ -30,3 +34,7 @@ X: Y
 */
 
 %%
+
+int yylex()
+{
+}
