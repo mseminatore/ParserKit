@@ -1,5 +1,8 @@
 %{
+
 /* include files and global decls go here */
+#include <stdio.h>
+
 %}
 
 %token id num
@@ -31,3 +34,13 @@ F: id
 	;
 
 %%
+
+//
+int yylex()
+{
+}
+
+//
+int main()
+{
+}

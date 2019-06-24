@@ -259,7 +259,7 @@ void LexicalAnalyzer::copyToEOF(FILE *fout)
 void LexicalAnalyzer::copyUntilChar(int endChar, int nestChar, FILE *fout)
 {
 	int chr;
-	int nestCount = 0;
+	int nestCount = 1;
 
 	assert(fout);
 
@@ -271,10 +271,14 @@ void LexicalAnalyzer::copyUntilChar(int endChar, int nestChar, FILE *fout)
 			nestCount++;
 		if (chr == endChar)
 			nestCount--;
-		
-		fputc(chr, fout);
+
+		if (nestCount)
+			fputc(chr, fout);
 
 	} while (nestCount);
+
+	// put back the last character
+	ungetChar(chr);
 }
 
 // skip any leading WS

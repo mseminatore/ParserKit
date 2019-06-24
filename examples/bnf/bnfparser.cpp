@@ -10,6 +10,7 @@
 static TokenTable _tokenTable[] =
 {
 	{ "token",	TV_TOKEN },
+	{ "start",	TV_START },
 	{ "%%",		TV_PERCENTS},
 	{ "%{",		TV_PERCENT_LBRACE },
 	{ "%}",		TV_PERCENT_RBRACE },
@@ -46,7 +47,13 @@ void BNFParser::DoRules()
 		yylval.sym->type = stNonTerminal;
 		lhs = yylval.sym->lexeme;
 
-		// TODO - error if we see the same nonTerminal more than once!?
+		// set the start symbol if one was not defined previously
+		if (startSymbol == "")
+		{
+			startSymbol = lhs;
+		}
+
+		// error if we see the same nonTerminal more than once!
 		auto result = nonTerminals.insert(lhs);
 		if (!result.second)
 			yyerror("Duplicate non-terminal (%s) found on LHS of rules!", lhs.c_str());
@@ -114,15 +121,27 @@ void BNFParser::DoTokens()
 	while (lookahead == '%')
 	{
 		match('%');
-		match(TV_TOKEN);
 
-		while (lookahead == TV_ID)
+		if (lookahead == TV_TOKEN)
 		{
-			tokens.insert(yylval.sym->lexeme);
+			match(TV_TOKEN);
 
-			// all tokens are terminals
-			terminals.insert(yylval.sym->lexeme);
+			while (lookahead == TV_ID)
+			{
+				tokens.insert(yylval.sym->lexeme);
 
+				// all tokens are terminals
+				terminals.insert(yylval.sym->lexeme);
+
+				match(TV_ID);
+			}
+		}
+		else if (lookahead == TV_START)
+		{
+			match(TV_START);
+			
+			startSymbol = yylval.sym->lexeme;
+			
 			match(TV_ID);
 		}
 	}
@@ -132,7 +151,8 @@ void BNFParser::DoTokens()
 void BNFParser::OutputTokens()
 {
 	fputs("#include \"tableparser.h\"\n\n", yyhout);
-	fputs("enum Class Tokens {\n\tERROR = 256,\n", yyhout);
+	fputs("enum {\n\tERROR = 256,\n", yyhout);
+//	fputs("enum Class Tokens {\n\tERROR = 256,\n", yyhout);
 
 	// output all the Terminals
 	fputs("\t// Terminal symbols\n", yyhout);
@@ -151,6 +171,7 @@ void BNFParser::OutputTokens()
 	fputs("};\n\n", yyhout);
 
 	fprintf(yyhout, "class %s : public tableparser {\n", outputFileName.c_str());
+	fputs("protected:\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tvoid yyrule(int rule) override;\n", yyhout);
 	fputs("};\n", yyhout);
@@ -240,7 +261,7 @@ void BNFParser::GenerateTable()
 				if (!result.second)
 				{
 					auto sym = m_pSymbolTable->lookup(lhs.c_str());
-					yywarning(Position(sym), "Conflict! Production for non-terminal %s is ambiguous.", lhs.c_str());
+					yywarning(Position(sym), "Conflict! Production for non-terminal '%s' is ambiguous.", lhs.c_str());
 				}
 
 				printf("(%s, %s): %s -> ", lhs.c_str(), (*followy).c_str(), lhs.c_str());
@@ -264,7 +285,7 @@ void BNFParser::GenerateTable()
 					if (!result.second)
 					{
 						auto sym = m_pSymbolTable->lookup(lhs.c_str());
-						yywarning(Position(sym), "Conflict! Production for non-terminal %s is ambiguous.", lhs.c_str());
+						yywarning(Position(sym), "Conflict! Production for non-terminal '%s' is ambiguous.", lhs.c_str());
 					}
 
 					printf("(%s, %s): %s -> ", lhs.c_str(), (*firsty).c_str(), lhs.c_str());
@@ -280,6 +301,14 @@ void BNFParser::GenerateTable()
 
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
 	fprintf(yyout, "void %s::initTable() {\n", outputFileName.c_str());
+	
+	fputs("\tss.push(0);\n", yyout);
+	
+	// push the start symbol
+	fprintf(yyout, "\tss.push(NTS_%s);\n", startSymbol.c_str());
+
+	// TODO - allow for a specified start symbol
+	fputs("\tss.push(0);\n", yyout);
 
 	// write out the parser table
 	auto index = 1;
@@ -295,14 +324,14 @@ void BNFParser::GenerateTable()
 				prefix = postfix = "'";
 			}
 
-			fprintf(yyout, "\ttable[%s][%s%s%s] = %d;\n", entry.first.c_str(), prefix, t->first.c_str(), postfix, index++);
+			fprintf(yyout, "\ttable[NTS_%s][%s%s%s] = %d;\n", entry.first.c_str(), prefix, t->first.c_str(), postfix, index++);
 		}
 	}
 
 	fputs("}\n\n", yyout);
 
-	fprintf(yyout, "void %s::yyrule(int rule) {\n", outputFileName.c_str());
-	fprintf(yyout, "\tswitch (rule) {\n");
+	fprintf(yyout, "void %s::yyrule(int rule)\n{\n", outputFileName.c_str());
+	fprintf(yyout, "\tswitch (rule)\n\t{\n");
 
 	index = 1;
 	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
@@ -310,9 +339,9 @@ void BNFParser::GenerateTable()
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
-			fprintf(yyout, "\tcase %d:\n", index++);
+			fprintf(yyout, "\t\tcase %d:\n", index++);
 
-			fputs("\t\tss.pop();\n", yyout);
+			fputs("\t\t\tss.pop();\n", yyout);
 			for (auto i = t->second.rbegin(); i != t->second.rend(); i++)
 			{
 				char *prefix = "TS_", *postfix = "";
@@ -325,13 +354,13 @@ void BNFParser::GenerateTable()
 					postfix = prefix = "'";
 				}
 
-				fprintf(yyout, "\t\tss.push(%s%s%s);\n", prefix, i->name.c_str(), postfix);
+				fprintf(yyout, "\t\t\tss.push(%s%s%s);\n", prefix, i->name.c_str(), postfix);
 			}
-			fputs("\t\tbreak;\n\n", yyout);
+			fputs("\t\t\tbreak;\n\n", yyout);
 		}
 	}
 
-	fputs("\tdefault:\n\t\tyyerror(\"parsing table defaulted\");\n\t\treturn 0;\n\t\tbreak;\n", yyout);
+	fputs("\t\tdefault:\n\t\t\tyyerror(\"parsing table defaulted\");\n\t\t\treturn 0;\n\t\t\tbreak;\n", yyout);
 	fputs("\t}\n", yyout);
 	fputs("}\n", yyout);
 }
@@ -526,10 +555,10 @@ int BNFParser::yyparse()
 
 	if (lookahead == TV_PERCENT_LBRACE)
 	{
-		match(lookahead);
-
 		// TODO - copy contents to output file
-//		m_lexer->copyUntilChar('%', 0, yyout);
+		m_lexer->copyUntilChar('%', 0, yyout);
+
+		match(lookahead);
 
 		match(TV_PERCENT_RBRACE);
 	}
@@ -547,8 +576,9 @@ int BNFParser::yyparse()
 
 	GenerateTable();
 
-	// TODO copy tail of file to output
-//	m_lexer->copyToEOF(yyout);
+	// copy tail of file to output
+	fputc(lookahead, yyout);
+	m_lexer->copyToEOF(yyout);
 
 	return 0;
 }

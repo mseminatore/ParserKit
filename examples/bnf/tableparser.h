@@ -1,13 +1,16 @@
 #pragma once
 
+#include <map>
+#include <stack>
+
 class TableParser
 {
 protected:
 	using Symbols = int;
 	using Rule = int;
 
-	map< Symbols, map<Symbols, Rule> > table;
-	stack<Symbols> ss;	// symbol stack
+	std::map< Symbols, std::map<Symbols, Rule> > table;
+	std::stack<Symbols> ss;	// symbol stack
 
 public:
 	~TableParser() = default;

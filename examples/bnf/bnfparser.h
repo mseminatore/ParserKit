@@ -18,6 +18,8 @@ protected:
 		std::string name;
 	};
 
+	std::string startSymbol;
+
 	using SymbolList = std::vector<Symbol>;
 	using Production = std::pair<std::string, SymbolList>;
 	using Productions = std::vector<Production>;
