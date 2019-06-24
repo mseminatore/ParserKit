@@ -170,10 +170,11 @@ void BNFParser::OutputTokens()
 
 	fputs("};\n\n", yyhout);
 
-	fprintf(yyhout, "class %s : public tableparser {\n", outputFileName.c_str());
+	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
 	fputs("protected:\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
-	fputs("\tvoid yyrule(int rule) override;\n", yyhout);
+	fputs("\tint yyrule(int rule) override;\n", yyhout);
+	fputs("\tint yylex() override;\n", yyhout);
 	fputs("};\n", yyhout);
 }
 
@@ -302,13 +303,10 @@ void BNFParser::GenerateTable()
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
 	fprintf(yyout, "void %s::initTable() {\n", outputFileName.c_str());
 	
-	fputs("\tss.push(0);\n", yyout);
+	fputs("\tss.push(EOF);\n", yyout);
 	
 	// push the start symbol
 	fprintf(yyout, "\tss.push(NTS_%s);\n", startSymbol.c_str());
-
-	// TODO - allow for a specified start symbol
-	fputs("\tss.push(0);\n", yyout);
 
 	// write out the parser table
 	auto index = 1;
@@ -317,7 +315,7 @@ void BNFParser::GenerateTable()
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
-			char *prefix = "", *postfix = "";
+			char *prefix = "TS_", *postfix = "";
 			auto sym = m_pSymbolTable->lookup(t->first.c_str());
 			if (!sym)
 			{
@@ -330,7 +328,7 @@ void BNFParser::GenerateTable()
 
 	fputs("}\n\n", yyout);
 
-	fprintf(yyout, "void %s::yyrule(int rule)\n{\n", outputFileName.c_str());
+	fprintf(yyout, "int %s::yyrule(int rule)\n{\n", outputFileName.c_str());
 	fprintf(yyout, "\tswitch (rule)\n\t{\n");
 
 	index = 1;
@@ -362,7 +360,7 @@ void BNFParser::GenerateTable()
 
 	fputs("\t\tdefault:\n\t\t\tyyerror(\"parsing table defaulted\");\n\t\t\treturn 0;\n\t\t\tbreak;\n", yyout);
 	fputs("\t}\n", yyout);
-	fputs("}\n", yyout);
+	fputs("\treturn rule;\n}\n", yyout);
 }
 
 //

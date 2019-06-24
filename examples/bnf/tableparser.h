@@ -13,13 +13,15 @@ protected:
 	std::stack<Symbols> ss;	// symbol stack
 
 public:
+	TableParser() {};
 	~TableParser() = default;
 
 	virtual int yyparse();
 	
-	virtual void yyerror(std::string &str);
-	virtual void yywarning(std::string &str);
+	virtual void yyerror(const std::string &str);
+	virtual void yywarning(const std::string &str);
 
 	virtual void initTable() = 0;
-	virtual void yyrule() = 0;
+	virtual int yyrule(int rule) = 0;
+	virtual int yylex() = 0;
 };
