@@ -8,12 +8,15 @@ class TableParser
 protected:
 	using Symbols = int;
 	using Rule = int;
+	using LexicalAnalyzer = int(*)();
+
+	LexicalAnalyzer yylex;
 
 	std::map< Symbols, std::map<Symbols, Rule> > table;
 	std::stack<Symbols> ss;	// symbol stack
 
 public:
-	TableParser() {};
+	TableParser(LexicalAnalyzer lexer) { yylex = lexer; };
 	~TableParser() = default;
 
 	virtual int yyparse();
@@ -23,5 +26,4 @@ public:
 
 	virtual void initTable() = 0;
 	virtual int yyrule(int rule) = 0;
-	virtual int yylex() = 0;
 };

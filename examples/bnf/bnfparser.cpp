@@ -174,7 +174,7 @@ void BNFParser::OutputTokens()
 	fputs("protected:\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
-	fputs("\tint yylex() override;\n", yyhout);
+	fprintf(yyhout, "public:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
 	fputs("};\n", yyhout);
 }
 
@@ -303,10 +303,12 @@ void BNFParser::GenerateTable()
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
 	fprintf(yyout, "void %s::initTable() {\n", outputFileName.c_str());
 	
-	fputs("\tss.push(EOF);\n", yyout);
+	fputs("\t// End Of File marker is last thing we'll see!\n\tss.push(EOF);\n\n", yyout);
 	
 	// push the start symbol
-	fprintf(yyout, "\tss.push(NTS_%s);\n", startSymbol.c_str());
+	fprintf(yyout, "\t// push the start symbol\n\tss.push(NTS_%s);\n\n", startSymbol.c_str());
+	
+	fputs("\t// setup the LL(1) parse table\n", yyout);
 
 	// write out the parser table
 	auto index = 1;
@@ -568,7 +570,7 @@ int BNFParser::yyparse()
 
 	if (lookahead == TV_PERCENT_LBRACE)
 	{
-		// TODO - copy contents to output file
+		// copy contents to output file
 		m_lexer->copyUntilChar('%', 0, yyout);
 
 		match(lookahead);
@@ -590,6 +592,7 @@ int BNFParser::yyparse()
 	GenerateTable();
 
 	// copy tail of file to output
+	fputs("\n", yyout);
 	fputc(lookahead, yyout);
 	m_lexer->copyToEOF(yyout);
 

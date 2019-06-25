@@ -140,7 +140,7 @@ int skipLeadingWhiteSpace()
 }
 
 //
-int jsonparser::yylex()
+int yylex()
 {
 	int chr;
 	char buf[DEFAULT_TEXT_BUF];
@@ -196,7 +196,7 @@ int jsonparser::yylex()
 //
 int main()
 {
-	jsonparser parser;
+	jsonparser parser(yylex);
 
 	parser.yyparse();
 	

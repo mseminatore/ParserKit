@@ -8,6 +8,7 @@ int TableParser::yyparse()
 {
 	int token, rule;
 
+	// setup the LL(1) parsing table
 	initTable();
 
 	token = yylex();
@@ -30,7 +31,7 @@ int TableParser::yyparse()
 			rule = table[ss.top()][token];
 			printf("Rule %d\n", rule);
 
-			// if there was a rule parse error
+			// check if there was a rule parse error
 			if (!yyrule(rule))
 				break;
 		}
