@@ -122,8 +122,9 @@ void BNFParser::DoTokens()
 	{
 		match('%');
 
-		if (lookahead == TV_TOKEN)
+		switch (lookahead)
 		{
+		case TV_TOKEN:
 			match(TV_TOKEN);
 
 			while (lookahead == TV_ID)
@@ -135,14 +136,13 @@ void BNFParser::DoTokens()
 
 				match(TV_ID);
 			}
-		}
-		else if (lookahead == TV_START)
-		{
+			break;
+
+		case TV_START:
 			match(TV_START);
-			
 			startSymbol = yylval.sym->lexeme;
-			
 			match(TV_ID);
+			break;
 		}
 	}
 }
