@@ -337,6 +337,21 @@ void BNFParser::GenerateTable()
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
+			fprintf(yyout, "\t\t// %s -> ", entry.first.c_str());
+			for (auto i = t->second.begin(); i != t->second.end(); i++)
+			{
+				char *prefix = "", *postfix = "";
+
+				if (i->type == SymbolType::CharTerminal)
+				{
+					prefix = postfix = "'";
+				}
+
+				fprintf(yyout, "%s%s%s ", prefix, i->name.c_str(), postfix);
+			}
+
+			fputs("\n", yyout);
+
 			fprintf(yyout, "\t\tcase %d:\n", index++);
 
 			fputs("\t\t\tss.pop();\n", yyout);
