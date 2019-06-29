@@ -23,7 +23,9 @@ protected:
 	using SymbolList = std::vector<Symbol>;
 	using Production = std::pair<std::string, SymbolList>;
 	using Productions = std::vector<Production>;
+	using Actions = std::vector<std::string>;
 
+	Actions actions;
 	Productions productions;
 
 	// the list of terminals

@@ -103,6 +103,15 @@ void BNFParser::DoRules()
 			Production prod(lhs, rhs);
 			productions.push_back(prod);
 
+			// see if there is an Action
+			if (lookahead == '{')
+			{
+				char str[DEFAULT_TEXT_BUF];
+				m_lexer->copyUntilChar('}', '{', str);
+				match('{');
+				match('}');
+			}
+
 		} while (lookahead == '|' && match('|'));
 
 		match(';');
@@ -172,9 +181,12 @@ void BNFParser::OutputTokens()
 
 	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
 	fputs("protected:\n", yyhout);
+	fputs("\tstd::stack<YYSTYPE> lvalStack;\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
-	fprintf(yyhout, "public:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
+	fputs("\tvoid tokenMatch(int token) override { lvalStack.push(yylval); }\n", yyhout);
+	fputs("\tvoid ruleMatch(int rule) override { /*while (!lvalStack.empty()) lvalStack.pop();*/ }\n", yyhout);
+	fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
 	fputs("};\n", yyhout);
 }
 

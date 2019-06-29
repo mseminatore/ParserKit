@@ -281,6 +281,35 @@ void LexicalAnalyzer::copyUntilChar(int endChar, int nestChar, FILE *fout)
 	ungetChar(chr);
 }
 
+//
+void LexicalAnalyzer::copyUntilChar(int endChar, int nestChar, char *buf)
+{
+	int chr;
+	int nestCount = 1;
+
+	assert(buf);
+
+	do
+	{
+		chr = getChar();
+
+		if (chr == nestChar)
+			nestCount++;
+		if (chr == endChar)
+			nestCount--;
+
+		if (nestCount)
+			*buf++ = chr;
+
+	} while (nestCount);
+
+	// make sure its ASCIIZ
+	*buf = 0;
+
+	// put back the last character
+	ungetChar(chr);
+}
+
 // skip any leading WS
 int LexicalAnalyzer::skipLeadingWhiteSpace()
 {

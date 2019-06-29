@@ -157,6 +157,7 @@ public:
 
 	void copyToEOF(FILE *fout);
 	void copyUntilChar(int endChar, int nestChar, FILE *fout);
+	void copyUntilChar(int endChar, int nestChar, char *buf);
 
 	// functions that may typically be overridden
 	virtual int yylex();

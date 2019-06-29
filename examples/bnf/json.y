@@ -12,6 +12,7 @@ FILE *YYIN = stdin;
 
 struct YYSTYPE
 {
+	int character;
 	float number;
 	std::string text;
 } yylval;
@@ -19,14 +20,11 @@ struct YYSTYPE
 %}
 
 %token STRING NUM TRUE FALSE NULL
-/* %start file */
+%start value
 
 %%
 
-file: value
-	;
-
-object: '{' key_values '}'
+object: '{' key_values '}' { while(1) { /* do nothing! */} }
 	;
 
 key_values:
@@ -186,10 +184,10 @@ int yylex()
 			return TS_NULL;
 
 		yylval.text = buf;
-
 		return TS_STRING;
 	}
 
+	yylval.char = chr;
 	return chr;
 }
 

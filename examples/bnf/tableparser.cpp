@@ -22,6 +22,8 @@ int TableParser::yyparse()
 			else
 				printf("Matched symbol: %d\n", token);
 
+			tokenMatch(token);
+
 			ss.pop();
 			if (ss.size() > 0)
 				token = yylex();
@@ -32,7 +34,9 @@ int TableParser::yyparse()
 			printf("Rule %d\n", rule);
 
 			// check if there was a rule parse error
-			if (!yyrule(rule))
+			if (yyrule(rule))
+				ruleMatch(rule);
+			else
 				break;
 		}
 	}
