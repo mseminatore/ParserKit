@@ -99,18 +99,21 @@ void BNFParser::DoRules()
 				match(lookahead);
 			}
 
-			// add production to our list of productions
-			Production prod(lhs, rhs);
-			productions.push_back(prod);
+			std::string action;
 
 			// see if there is an Action
 			if (lookahead == '{')
 			{
 				char str[DEFAULT_TEXT_BUF];
 				m_lexer->copyUntilChar('}', '{', str);
+				action = str;
 				match('{');
 				match('}');
 			}
+
+			// add production to our list of productions
+			Production prod(lhs, rhs, action);
+			productions.push_back(prod);
 
 		} while (lookahead == '|' && match('|'));
 
@@ -197,10 +200,10 @@ void BNFParser::OutputProductions()
 	for (; iter != productions.end(); iter++)
 	{
 		Production prod = *iter;
-		printf("%s: ", prod.first.c_str());
+		printf("%s: ", prod.lhs.c_str());
 
-		auto symbols = prod.second.begin();
-		for (; symbols != prod.second.end(); symbols++)
+		auto symbols = prod.symbols.begin();
+		for (; symbols != prod.symbols.end(); symbols++)
 		{
 			printf("%s ", symbols->name.c_str());
 		}
@@ -261,8 +264,8 @@ void BNFParser::GenerateTable()
 	// foreach production
 	for (auto iter = productions.begin(); iter != productions.end(); iter++)
 	{
-		auto lhs = iter->first;
-		auto rhs = iter->second;
+		auto lhs = iter->lhs;
+		auto rhs = iter->symbols;
 		
 		auto followSet = follow.find(lhs)->second;
 
@@ -439,9 +442,9 @@ void BNFParser::ComputeFirst()
 			auto nullSoFar = true;
 
 			// foreach symbol
-			for (auto symbolIndex = 0; symbolIndex < prod.second.size(); symbolIndex++)
+			for (auto symbolIndex = 0; symbolIndex < prod.symbols.size(); symbolIndex++)
 			{
-				auto rhs = prod.second[symbolIndex];
+				auto rhs = prod.symbols[symbolIndex];
 
 				if (nullable.find(rhs.name) == nullable.end())
 					nullSoFar = false;
@@ -453,7 +456,7 @@ void BNFParser::ComputeFirst()
 
 					for (auto rhsIter = rhsSet.begin(); rhsIter != rhsSet.end(); rhsIter++)
 					{
-						auto result = first[prod.first].insert(*rhsIter);
+						auto result = first[prod.lhs].insert(*rhsIter);
 						if (result.second)
 							done = false;
 					}
@@ -486,17 +489,17 @@ void BNFParser::ComputeFollow()
 			Production prod = *prodIter;
 		
 			// foreach symbol
-			for (auto i = 0; i < prod.second.size(); i++)
+			for (auto i = 0; i < prod.symbols.size(); i++)
 			{
-				auto rhs = prod.second;
+				auto rhs = prod.symbols;
 				auto Yi = rhs[i].name;
 
 				if (rhs[i].type == SymbolType::Nonterminal)
 				{
-					if ((i == prod.second.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
+					if ((i == prod.symbols.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
 					{
 						// insert follow[X] in follow[Yi]
-						auto X = prod.first;
+						auto X = prod.lhs;
 						auto followSet = follow[X];
 						for (auto rhsIter = followSet.begin(); rhsIter != followSet.end(); rhsIter++)
 						{
@@ -506,12 +509,12 @@ void BNFParser::ComputeFollow()
 						}
 					}
 
-					for (auto j = i + 1; j < prod.second.size(); j++)
+					for (auto j = i + 1; j < prod.symbols.size(); j++)
 					{
 						if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
 						{
 							// insert first[Yj] in follow[Yi]
-							auto Yj = prod.second[j].name;
+							auto Yj = prod.symbols[j].name;
 							auto firstSet = first[Yj];
 							for (auto rhsIter = firstSet.begin(); rhsIter != firstSet.end(); rhsIter++)
 							{
@@ -546,25 +549,25 @@ void BNFParser::ComputeNullable()
 		{
 			Production prod = *prodIter;
 
-			auto symbols = prod.second.begin();
-			if (symbols == prod.second.end())
+			auto symbols = prod.symbols.begin();
+			if (symbols == prod.symbols.end())
 			{
-				auto result = nullable.insert(prod.first);
+				auto result = nullable.insert(prod.lhs);
 				if (result.second)
 					done = false;
 			}
 			else
 			{
 				auto nullableCount = 0;
-				for (; symbols != prod.second.end(); symbols++)
+				for (; symbols != prod.symbols.end(); symbols++)
 				{
 					if (nullable.find(symbols->name) != nullable.end())
 						nullableCount++;
 				}
 
-				if (nullableCount == prod.second.size())
+				if (nullableCount == prod.symbols.size())
 				{
-					auto result = nullable.insert(prod.first);
+					auto result = nullable.insert(prod.lhs);
 					if (result.second)
 						done = false;
 				}

@@ -21,11 +21,26 @@ protected:
 	std::string startSymbol;
 
 	using SymbolList = std::vector<Symbol>;
-	using Production = std::pair<std::string, SymbolList>;
-	using Productions = std::vector<Production>;
-	using Actions = std::vector<std::string>;
 
-	Actions actions;
+	//using Production = std::pair<std::string, SymbolList>;
+	struct Production
+	{
+		std::string lhs;
+		SymbolList symbols;
+		std::string action;
+
+		Production(std::string _lhs, SymbolList _symbols, std::string _action)
+		{
+			lhs = _lhs;
+			symbols = _symbols;
+			action = _action;
+		}
+	};
+
+	//using Actions = std::vector<std::string>;
+	//Actions actions;
+
+	using Productions = std::vector<Production>;
 	Productions productions;
 
 	// the list of terminals
