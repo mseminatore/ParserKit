@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <iostream>
 #include <map>
 #include <stack>
@@ -15,23 +16,27 @@ int TableParser::yyparse()
 
 	while (ss.size() > 0)
 	{
+		// if the token matches TOS then we match the token
 		if (token == ss.top())
 		{
 			if (token > 0 && token < 256)
-				printf("Matched symbol: '%c'\n", token);
+				yylog("Matched symbol: '%c'\n", token);
 			else
-				printf("Matched symbol: %d\n", token);
+				yylog("Matched symbol: %d\n", token);
 
+			// save the yylval on the value stack
 			tokenMatch(token);
 
 			ss.pop();
+
+			// if there is more parsing to do, then get the next token
 			if (ss.size() > 0)
 				token = yylex();
 		}
 		else
 		{
 			rule = table[ss.top()][token];
-			printf("Rule %d\n", rule);
+			yylog("Rule %d\n", rule);
 
 			// check if there was a rule parse error
 			if (yyrule(rule))
@@ -47,11 +52,27 @@ int TableParser::yyparse()
 //
 void TableParser::yyerror(const std::string &str)
 {
-	printf("error: %s\n", str.c_str());
+	yylog("error: %s\n", str.c_str());
 }
 
 //
 void TableParser::yywarning(const std::string &str)
 {
-	printf("warning: %s\n", str.c_str());
+	yylog("warning: %s\n", str.c_str());
+}
+
+//
+void TableParser::yylog(const char *fmt, ...)
+{
+	if (!yydebug)
+		return;
+
+	char buf[YYBUFSIZE];
+	va_list argptr;
+
+	va_start(argptr, fmt);
+	vsprintf_s(buf, fmt, argptr);
+	va_end(argptr);
+
+	fputs(buf, YYLOG);
 }

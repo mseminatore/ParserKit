@@ -163,8 +163,9 @@ void BNFParser::DoTokens()
 void BNFParser::OutputTokens()
 {
 	fputs("#include \"tableparser.h\"\n\n", yyhout);
-	fputs("enum {\n\tERROR = 256,\n", yyhout);
 //	fputs("enum Class Tokens {\n\tERROR = 256,\n", yyhout);
+	fputs("enum {\n\tERROR = 256,\n", yyhout);
+	fputs("\tACTION,\n", yyhout);
 
 	// output all the Terminals
 	fputs("\t// Terminal symbols\n", yyhout);
@@ -184,7 +185,7 @@ void BNFParser::OutputTokens()
 
 	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
 	fputs("protected:\n", yyhout);
-	fputs("\tstd::stack<YYSTYPE> lvalStack;\n", yyhout);
+	fputs("\tstd::stack<YYSTYPE> lvalStack;\n\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
 	fputs("\tvoid tokenMatch(int token) override { lvalStack.push(yylval); }\n", yyhout);

@@ -3,6 +3,9 @@
 #include <map>
 #include <stack>
 
+#define YYLOG stdout
+#define YYBUFSIZE 2048
+
 class TableParser
 {
 protected:
@@ -12,8 +15,13 @@ protected:
 
 	LexicalAnalyzer yylex;
 
+	// parsing table
 	std::map< Symbols, std::map<Symbols, Rule> > table;
-	std::stack<Symbols> ss;	// symbol stack
+	
+	// symbol stack
+	std::stack<Symbols> ss;
+
+	bool yydebug = false;
 
 public:
 	TableParser(LexicalAnalyzer lexer) { yylex = lexer; };
@@ -23,6 +31,7 @@ public:
 	
 	virtual void yyerror(const std::string &str);
 	virtual void yywarning(const std::string &str);
+	virtual void yylog(const char *fmt, ...);
 
 	virtual void initTable() = 0;
 	virtual int yyrule(int rule) = 0;

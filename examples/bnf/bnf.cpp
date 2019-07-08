@@ -1,6 +1,8 @@
 // bnf.cpp : Defines the entry point for the console application.
 //
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <string>
 #include <list>

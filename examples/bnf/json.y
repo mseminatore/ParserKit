@@ -24,7 +24,7 @@ struct YYSTYPE
 
 %%
 
-object: '{' key_values '}' { while(1) { /* do nothing! */} }
+object: '{' key_values '}' { puts("found an object!"); }
 	;
 
 key_values:
@@ -187,7 +187,7 @@ int yylex()
 		return TS_STRING;
 	}
 
-	yylval.char = chr;
+	yylval.character = chr;
 	return chr;
 }
 
