@@ -203,8 +203,8 @@ void BNFParser::OutputProductions()
 		Production prod = *iter;
 		printf("%s: ", prod.lhs.c_str());
 
-		auto symbols = prod.symbols.begin();
-		for (; symbols != prod.symbols.end(); symbols++)
+		auto symbols = prod.rhs.symbols.begin();
+		for (; symbols != prod.rhs.symbols.end(); symbols++)
 		{
 			printf("%s ", symbols->name.c_str());
 		}
@@ -235,6 +235,7 @@ void BNFParser::GenerateTable()
 	ComputeNullable();
 
 	ComputeFirst();
+
 	ComputeFollow();
 
 	for (auto iter = nullable.begin(); iter != nullable.end(); iter++)
@@ -266,7 +267,7 @@ void BNFParser::GenerateTable()
 	for (auto iter = productions.begin(); iter != productions.end(); iter++)
 	{
 		auto lhs = iter->lhs;
-		auto rhs = iter->symbols;
+		auto rhs = iter->rhs.symbols;
 		
 		auto followSet = follow.find(lhs)->second;
 
@@ -443,9 +444,9 @@ void BNFParser::ComputeFirst()
 			auto nullSoFar = true;
 
 			// foreach symbol
-			for (auto symbolIndex = 0; symbolIndex < prod.symbols.size(); symbolIndex++)
+			for (auto symbolIndex = 0; symbolIndex < prod.rhs.symbols.size(); symbolIndex++)
 			{
-				auto rhs = prod.symbols[symbolIndex];
+				auto rhs = prod.rhs.symbols[symbolIndex];
 
 				if (nullable.find(rhs.name) == nullable.end())
 					nullSoFar = false;
@@ -490,14 +491,14 @@ void BNFParser::ComputeFollow()
 			Production prod = *prodIter;
 		
 			// foreach symbol
-			for (auto i = 0; i < prod.symbols.size(); i++)
+			for (auto i = 0; i < prod.rhs.symbols.size(); i++)
 			{
-				auto rhs = prod.symbols;
+				auto rhs = prod.rhs.symbols;
 				auto Yi = rhs[i].name;
 
 				if (rhs[i].type == SymbolType::Nonterminal)
 				{
-					if ((i == prod.symbols.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
+					if ((i == prod.rhs.symbols.size() - 1 || AreAllNullable(i + 1, rhs.size(), rhs)))
 					{
 						// insert follow[X] in follow[Yi]
 						auto X = prod.lhs;
@@ -510,12 +511,12 @@ void BNFParser::ComputeFollow()
 						}
 					}
 
-					for (auto j = i + 1; j < prod.symbols.size(); j++)
+					for (auto j = i + 1; j < prod.rhs.symbols.size(); j++)
 					{
 						if (i + 1 == j || AreAllNullable(i + 1, j - 1, rhs))
 						{
 							// insert first[Yj] in follow[Yi]
-							auto Yj = prod.symbols[j].name;
+							auto Yj = prod.rhs.symbols[j].name;
 							auto firstSet = first[Yj];
 							for (auto rhsIter = firstSet.begin(); rhsIter != firstSet.end(); rhsIter++)
 							{
@@ -550,8 +551,8 @@ void BNFParser::ComputeNullable()
 		{
 			Production prod = *prodIter;
 
-			auto symbols = prod.symbols.begin();
-			if (symbols == prod.symbols.end())
+			auto symbols = prod.rhs.symbols.begin();
+			if (symbols == prod.rhs.symbols.end())
 			{
 				auto result = nullable.insert(prod.lhs);
 				if (result.second)
@@ -560,13 +561,13 @@ void BNFParser::ComputeNullable()
 			else
 			{
 				auto nullableCount = 0;
-				for (; symbols != prod.symbols.end(); symbols++)
+				for (; symbols != prod.rhs.symbols.end(); symbols++)
 				{
 					if (nullable.find(symbols->name) != nullable.end())
 						nullableCount++;
 				}
 
-				if (nullableCount == prod.symbols.size())
+				if (nullableCount == prod.rhs.symbols.size())
 				{
 					auto result = nullable.insert(prod.lhs);
 					if (result.second)

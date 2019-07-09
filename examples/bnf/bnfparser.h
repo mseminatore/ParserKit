@@ -22,18 +22,26 @@ protected:
 
 	using SymbolList = std::vector<Symbol>;
 
-	//using Production = std::pair<std::string, SymbolList>;
-	struct Production
+	struct RighthandSide
 	{
-		std::string lhs;
 		SymbolList symbols;
 		std::string action;
 
-		Production(std::string _lhs, SymbolList _symbols, std::string _action)
+		RighthandSide(SymbolList _symbols, std::string _action)
 		{
-			lhs = _lhs;
 			symbols = _symbols;
 			action = _action;
+		}
+	};
+
+	struct Production
+	{
+		std::string lhs;
+		RighthandSide rhs;
+
+		Production(std::string _lhs, SymbolList _symbols, std::string _action) : rhs(_symbols, _action)
+		{
+			lhs = _lhs;
 		}
 	};
 
