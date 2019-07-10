@@ -18,6 +18,8 @@ protected:
 	// parsing table
 	std::map< Symbols, std::map<Symbols, Rule> > table;
 	
+	std::map<Symbols, Rule> actions;
+
 	// symbol stack
 	std::stack<Symbols> ss;
 
@@ -35,6 +37,8 @@ public:
 
 	virtual void initTable() = 0;
 	virtual int yyrule(int rule) = 0;
+	virtual int yyaction(int action) = 0;
+
 	virtual void tokenMatch(int token) = 0;
 	virtual void ruleMatch(int rule) = 0;
 };

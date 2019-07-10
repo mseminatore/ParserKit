@@ -35,6 +35,9 @@ int TableParser::yyparse()
 		}
 		else
 		{
+			// perform any actions if they exist
+			yyaction(ss.top());
+
 			rule = table[ss.top()][token];
 			yylog("Rule %d\n", rule);
 

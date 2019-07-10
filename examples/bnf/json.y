@@ -46,7 +46,7 @@ more_values:
 	| ',' values
 	;
 
-value: STRING
+value: STRING { printf("%s\n", lvalStack.top().text.c_str()); }
 	| NUM
 	| object
 	| array
@@ -95,7 +95,7 @@ int getStringLiteral()
 	// make sure its asciiz
 	*cptr = '\0';
 
-	yylval.text = cptr;
+	yylval.text = buf;
 	return TS_STRING;
 }
 

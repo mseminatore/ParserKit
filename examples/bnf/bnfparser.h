@@ -22,24 +22,26 @@ protected:
 
 	using SymbolList = std::vector<Symbol>;
 
-	struct RighthandSide
+	struct RightHandSide
 	{
 		SymbolList symbols;
 		std::string action;
+		int actionIndex;
 
-		RighthandSide(SymbolList _symbols, std::string _action)
+		RightHandSide(SymbolList _symbols, std::string _action, int _index)
 		{
 			symbols = _symbols;
 			action = _action;
+			actionIndex = _index;
 		}
 	};
 
 	struct Production
 	{
 		std::string lhs;
-		RighthandSide rhs;
+		RightHandSide rhs;
 
-		Production(std::string _lhs, SymbolList _symbols, std::string _action) : rhs(_symbols, _action)
+		Production(std::string _lhs, SymbolList _symbols, std::string _action, int _index) : rhs(_symbols, _action, _index)
 		{
 			lhs = _lhs;
 		}
@@ -55,7 +57,7 @@ protected:
 	using TokenSet = std::set<std::string>;
 	TokenSet tokens, terminals, nonTerminals;
 
-	std::map<std::string, std::map<std::string, SymbolList>> parseTable;
+	std::map<std::string, std::map<std::string, RightHandSide>> parseTable;
 
 	//
 	std::set<std::string> nullable;

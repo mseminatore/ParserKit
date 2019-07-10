@@ -36,6 +36,8 @@ BNFParser::BNFParser() : BaseParser(std::make_unique<SymbolTable>())
 //
 void BNFParser::DoRules()
 {
+	int actionIndex = 1;
+
 	// a production starts with a non-terminal LHS
 	while (lookahead == TV_ID)
 	{
@@ -112,7 +114,7 @@ void BNFParser::DoRules()
 			}
 
 			// add production to our list of productions
-			Production prod(lhs, rhs, action);
+			Production prod(lhs, rhs, action, (action != "") ? actionIndex++ : 0);
 			productions.push_back(prod);
 
 		} while (lookahead == '|' && match('|'));
@@ -165,20 +167,27 @@ void BNFParser::OutputTokens()
 	fputs("#include \"tableparser.h\"\n\n", yyhout);
 //	fputs("enum Class Tokens {\n\tERROR = 256,\n", yyhout);
 	fputs("enum {\n\tERROR = 256,\n", yyhout);
-	fputs("\tACTION,\n", yyhout);
 
 	// output all the Terminals
-	fputs("\t// Terminal symbols\n", yyhout);
+	fputs("\n\t// Terminal symbols\n", yyhout);
 	for (auto iter = tokens.begin(); iter != tokens.end(); iter++)
 	{
 		fprintf(yyhout, "\tTS_%s,\n", iter->c_str());
 	}
 
 	// output all the non-Terminals
-	fputs("\t// Non-Terminal symbols\n", yyhout);
+	fputs("\n\t// Non-Terminal symbols\n", yyhout);
 	for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
 	{
 		fprintf(yyhout, "\tNTS_%s,\n", iter->c_str());
+	}
+
+	// output all the action symbols
+	fputs("\n\t// Action symbols\n", yyhout);
+	for (auto i = 0; i < productions.size(); i++)
+	{
+		if (productions[i].rhs.action != "")
+			fprintf(yyhout, "\tACTION_%d,\n", productions[i].rhs.actionIndex);
 	}
 
 	fputs("};\n\n", yyhout);
@@ -188,6 +197,7 @@ void BNFParser::OutputTokens()
 	fputs("\tstd::stack<YYSTYPE> lvalStack;\n\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
+	fputs("\tint yyaction(int action) override;\n\n", yyhout);
 	fputs("\tvoid tokenMatch(int token) override { lvalStack.push(yylval); }\n", yyhout);
 	fputs("\tvoid ruleMatch(int rule) override { /*while (!lvalStack.empty()) lvalStack.pop();*/ }\n", yyhout);
 	fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
@@ -275,7 +285,7 @@ void BNFParser::GenerateTable()
 		{
 			for (auto followy = followSet.begin(); followy != followSet.end(); followy++)
 			{
-				auto result = parseTable[lhs].insert(std::pair<std::string, SymbolList>(*followy, rhs));
+				auto result = parseTable[lhs].insert(std::pair<std::string, RightHandSide>(*followy, RightHandSide(rhs, iter->rhs.action, iter->rhs.actionIndex)));
 				if (!result.second)
 				{
 					auto sym = m_pSymbolTable->lookup(lhs.c_str());
@@ -299,7 +309,7 @@ void BNFParser::GenerateTable()
 			{
 				if (terminals.find(*firsty) != terminals.end())
 				{
-					auto result = parseTable[lhs].insert(std::pair<std::string, SymbolList>(*firsty, rhs));
+					auto result = parseTable[lhs].insert(std::pair<std::string, RightHandSide>(*firsty, RightHandSide(rhs, iter->rhs.action, iter->rhs.actionIndex)));
 					if (!result.second)
 					{
 						auto sym = m_pSymbolTable->lookup(lhs.c_str());
@@ -357,7 +367,7 @@ void BNFParser::GenerateTable()
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
 			fprintf(yyout, "\t\t// %s -> ", entry.first.c_str());
-			for (auto i = t->second.begin(); i != t->second.end(); i++)
+			for (auto i = t->second.symbols.begin(); i != t->second.symbols.end(); i++)
 			{
 				char *prefix = "", *postfix = "";
 
@@ -374,7 +384,13 @@ void BNFParser::GenerateTable()
 			fprintf(yyout, "\t\tcase %d:\n", index++);
 
 			fputs("\t\t\tss.pop();\n", yyout);
-			for (auto i = t->second.rbegin(); i != t->second.rend(); i++)
+
+			if (t->second.action != "")
+			{
+				fprintf(yyout, "\t\t\tss.push(ACTION_%d);\n", t->second.actionIndex);
+			}
+
+			for (auto i = t->second.symbols.rbegin(); i != t->second.symbols.rend(); i++)
 			{
 				char *prefix = "TS_", *postfix = "";
 
@@ -394,7 +410,30 @@ void BNFParser::GenerateTable()
 
 	fputs("\t\tdefault:\n\t\t\tyyerror(\"parsing table defaulted\");\n\t\t\treturn 0;\n\t\t\tbreak;\n", yyout);
 	fputs("\t}\n", yyout);
-	fputs("\treturn rule;\n}\n", yyout);
+	fputs("\treturn rule;\n}\n\n", yyout);
+
+	// generate the actions handler
+	fprintf(yyout, "int %s::yyaction(int action)\n{\n", outputFileName.c_str());
+	fprintf(yyout, "\tswitch (action)\n\t{\n");
+
+	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
+	{
+		auto entry = *nt;
+		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
+		{
+			if (t->second.action != "")
+			{
+				fprintf(yyout, "\tcase ACTION_%d:\n", t->second.actionIndex);
+				fputs("\t\t{\n", yyout);
+				fprintf(yyout, "\t\t\t%s\n", t->second.action.c_str());
+				fputs("\t\t}\n\t\tbreak;\n\n", yyout);
+			}
+		}
+	}
+
+	fputs("\tdefault:\n\t\tyyerror(\"action table defaulted\");\n\t\treturn 0;\n\t\tbreak;\n", yyout);
+	fputs("\t}\n", yyout);
+	fputs("\treturn action;\n}\n\n", yyout);
 }
 
 //
@@ -603,10 +642,11 @@ int BNFParser::yyparse()
 
 	match(TV_PERCENTS);
 	
-	OutputTokens();
 	OutputProductions();
 
 	GenerateTable();
+
+	OutputTokens();
 
 	// copy tail of file to output
 	fputs("\n", yyout);
