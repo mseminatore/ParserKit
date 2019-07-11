@@ -47,9 +47,6 @@ protected:
 		}
 	};
 
-	//using Actions = std::vector<std::string>;
-	//Actions actions;
-
 	using Productions = std::vector<Production>;
 	Productions productions;
 
@@ -70,8 +67,11 @@ protected:
 	void ComputeFollow();
 
 	void GenerateTable();
-	void OutputTokens();
+	
+	void OutputSymbols();
 	void OutputProductions();
+	void OutputTable();
+
 	bool AreAllNullable(size_t start, size_t end, const SymbolList &symbols);
 
 public:

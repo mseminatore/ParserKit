@@ -162,35 +162,37 @@ void BNFParser::DoTokens()
 }
 
 //
-void BNFParser::OutputTokens()
+// Write out the symbol enumeration
+//
+void BNFParser::OutputSymbols()
 {
 	fputs("#include \"tableparser.h\"\n\n", yyhout);
-//	fputs("enum Class Tokens {\n\tERROR = 256,\n", yyhout);
-	fputs("enum {\n\tERROR = 256,\n", yyhout);
+//	fputs("enum class Tokens {\n\tERROR = 256,\n", yyhout);
+	fputs("enum {\n\tERROR = 256,\n", yyout);
 
 	// output all the Terminals
-	fputs("\n\t// Terminal symbols\n", yyhout);
+	fputs("\n\t// Terminal symbols\n", yyout);
 	for (auto iter = tokens.begin(); iter != tokens.end(); iter++)
 	{
-		fprintf(yyhout, "\tTS_%s,\n", iter->c_str());
+		fprintf(yyout, "\tTS_%s,\n", iter->c_str());
 	}
 
 	// output all the non-Terminals
-	fputs("\n\t// Non-Terminal symbols\n", yyhout);
+	fputs("\n\t// Non-Terminal symbols\n", yyout);
 	for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
 	{
-		fprintf(yyhout, "\tNTS_%s,\n", iter->c_str());
+		fprintf(yyout, "\tNTS_%s,\n", iter->c_str());
 	}
 
 	// output all the action symbols
-	fputs("\n\t// Action symbols\n", yyhout);
+	fputs("\n\t// Action symbols\n", yyout);
 	for (auto i = 0; i < productions.size(); i++)
 	{
 		if (productions[i].rhs.action != "")
-			fprintf(yyhout, "\tACTION_%d,\n", productions[i].rhs.actionIndex);
+			fprintf(yyout, "\tACTION_%d,\n", productions[i].rhs.actionIndex);
 	}
 
-	fputs("};\n\n", yyhout);
+	fputs("};\n\n", yyout);
 
 	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
 	fputs("protected:\n", yyhout);
@@ -326,15 +328,19 @@ void BNFParser::GenerateTable()
 			}
 		}
 	}
+}
 
+//
+void BNFParser::OutputTable()
+{
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
 	fprintf(yyout, "void %s::initTable() {\n", outputFileName.c_str());
-	
+
 	fputs("\t// End Of File marker is last thing we'll see!\n\tss.push(EOF);\n\n", yyout);
-	
+
 	// push the start symbol
 	fprintf(yyout, "\t// push the start symbol\n\tss.push(NTS_%s);\n\n", startSymbol.c_str());
-	
+
 	fputs("\t// setup the LL(1) parse table\n", yyout);
 
 	// write out the parser table
@@ -646,7 +652,9 @@ int BNFParser::yyparse()
 
 	GenerateTable();
 
-	OutputTokens();
+	OutputSymbols();
+	
+	OutputTable();
 
 	// copy tail of file to output
 	fputs("\n", yyout);

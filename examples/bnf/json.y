@@ -1,8 +1,10 @@
 %{
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <ctype.h>
 #include <string>
+#include <map>
 
 unsigned yylineno = 1;
 FILE *YYIN = stdin;
@@ -12,15 +14,43 @@ FILE *YYIN = stdin;
 
 struct YYSTYPE
 {
+protected:
 	int character;
 	float number;
 	std::string text;
 
+public:
 	YYSTYPE()
 	{
 		character = 0;
 		number = 0.0f;
 	}
+
+	void setNumber(float num)
+	{
+		number = num;
+		character = 0;
+		text = "";
+	}
+
+	float asNumber() { return number; }	
+
+	void setCharacter(int c)
+	{
+		character = c;
+		number = 0.0f;
+		text = "";
+	}
+
+	int asChar() { return character; }
+
+	void setText(const std::string &str)
+	{
+		text = str;
+	}
+
+	std::string &asString() { return text; }
+
 } yylval;
 
 %}
@@ -52,8 +82,8 @@ more_values:
 	| ',' values
 	;
 
-value: STRING { printf("%s\n", lvalStack.top().text.c_str()); }
-	| NUM { printf("%3.2f\n", lvalStack.top().number); }
+value: STRING { printf("%s\n", lvalStack.top().asString().c_str()); }
+	| NUM { printf("%3.2f\n", lvalStack.top().asNumber()); }
 	| object
 	| array
 	| TRUE
@@ -64,9 +94,32 @@ value: STRING { printf("%s\n", lvalStack.top().text.c_str()); }
 %%
 
 //
+using TokenTable = std::map<std::string, int>;
+TokenTable keywords = {
+	{ "true", TS_TRUE },
+	{ "false", TS_FALSE },
+	{ "null", TS_NULL }
+};
+
+//
 void yyerror(const char *str)
 {
 	puts(str);
+}
+
+//
+int backslash(int c)
+{
+	static char translation_tab[] = "b\bf\fn\nr\rt\t";
+
+	if (c != '\\')
+		return c;
+
+	c = getc(YYIN);
+	if (islower(c) && strchr(translation_tab, c))
+		return strchr(translation_tab, c)[1];
+
+	return c;
 }
 
 //======================================================================
@@ -94,14 +147,14 @@ int getStringLiteral()
 			yyerror("missing quote");
 
 		// build up our string, translating escape chars
-		*cptr++ = c;
+		*cptr++ = backslash(c);
 		c = getc(YYIN);
 	}
 
 	// make sure its asciiz
 	*cptr = '\0';
 
-	yylval.text = buf;
+	yylval.setText(buf);
 	return TS_STRING;
 }
 
@@ -121,8 +174,7 @@ int getNumber()
 	// make sure string is asciiz
 	*bufptr = '\0';
 
-	yylval.number = (float)atof(buf);
-
+	yylval.setNumber((float)atof(buf));
 	return TS_NUM;
 }
 
@@ -180,20 +232,17 @@ int yylex()
 		// make sure its asciiz
 		*pBuf = 0;
 
-		if (!_stricmp(buf, "true"))
-			return TS_TRUE;
+		auto iterTokens = keywords.find(_strlwr(buf));
+		if (iterTokens != keywords.end())
+		{
+			return iterTokens->second;
+		}
 
-		if (!_stricmp(buf, "false"))
-			return TS_FALSE;
-
-		if (!_stricmp(buf, "null"))
-			return TS_NULL;
-
-		yylval.text = buf;
+		yylval.setText(buf);
 		return TS_STRING;
 	}
 
-	yylval.character = chr;
+	yylval.setCharacter(chr);
 	return chr;
 }
 
