@@ -602,7 +602,7 @@ yylex01:
 		*pBuf = 0;
 
 		// search token table for possible match
-		TokenTableMap::iterator iterTokens = m_tokenTable.find(buf);
+		auto iterTokens = m_tokenTable.find(buf);
 		if (iterTokens != m_tokenTable.end())
 		{
 			return iterTokens->second;
