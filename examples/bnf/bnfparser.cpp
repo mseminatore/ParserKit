@@ -431,7 +431,7 @@ void BNFParser::GenerateTable()
 		}
 	}
 
-	fputs("\tdefault:\n\t\tyyerror(\"action table defaulted\");\n\t\treturn 0;\n\t\tbreak;\n", yyout);
+	fputs("\tdefault:\n\t\treturn 0;\n\t\tbreak;\n", yyout);
 	fputs("\t}\n", yyout);
 	fputs("\treturn action;\n}\n\n", yyout);
 }

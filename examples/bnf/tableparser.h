@@ -29,6 +29,10 @@ public:
 	TableParser(LexicalAnalyzer lexer) { yylex = lexer; };
 	~TableParser() = default;
 
+	void setDebug(bool onoff) {
+		yydebug = onoff;
+	}
+
 	virtual int yyparse();
 	
 	virtual void yyerror(const std::string &str);

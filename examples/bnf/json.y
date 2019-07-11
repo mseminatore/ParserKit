@@ -15,6 +15,12 @@ struct YYSTYPE
 	int character;
 	float number;
 	std::string text;
+
+	YYSTYPE()
+	{
+		character = 0;
+		number = 0.0f;
+	}
 } yylval;
 
 %}
@@ -47,7 +53,7 @@ more_values:
 	;
 
 value: STRING { printf("%s\n", lvalStack.top().text.c_str()); }
-	| NUM
+	| NUM { printf("%3.2f\n", lvalStack.top().number); }
 	| object
 	| array
 	| TRUE
@@ -196,6 +202,7 @@ int main()
 {
 	jsonparser parser(yylex);
 
+	parser.setDebug(true);
 	parser.yyparse();
 	
 	return 0;
