@@ -2,6 +2,7 @@
 
 #include <map>
 #include <stack>
+#include <vector>
 
 #define YYLOG stdout
 #define YYBUFSIZE 2048
@@ -44,5 +45,4 @@ public:
 	virtual int yyaction(int action) = 0;
 
 	virtual void tokenMatch(int token) = 0;
-	virtual void ruleMatch(int rule) = 0;
 };

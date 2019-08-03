@@ -20,11 +20,12 @@ int TableParser::yyparse()
 		if (token == ss.top())
 		{
 			if (token > 0 && token < 256)
-				yylog("Matched symbol: '%c'\n", token);
+				yylog("Matched token: '%c'\n", token);
 			else
 				yylog("Matched symbol: %d\n", token);
 
 			// save the yylval on the value stack
+			// TODO - what do we push for a non-terminal symbol? yylval is not populated with data!
 			tokenMatch(token);
 
 			ss.pop();
@@ -37,16 +38,18 @@ int TableParser::yyparse()
 		{
 			// perform any actions if they exist
 			if (yyaction(ss.top()))
+			{
+				yylog("Action %d\n", ss.top());
+
 				ss.pop();
+				continue; // there might be more actions on the stack!
+			}
 
 			rule = table[ss.top()][token];
 			yylog("Rule %d\n", rule);
 
-			// check if there was a rule parse error
-			if (yyrule(rule))
-				ruleMatch(rule);
-			else
-				break;
+			// process the rule
+			yyrule(rule);
 		}
 	}
 

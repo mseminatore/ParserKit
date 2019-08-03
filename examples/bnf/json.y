@@ -18,18 +18,31 @@ protected:
 	int character;
 	float number;
 	std::string text;
+	int token;
 
 public:
 	YYSTYPE()
 	{
-		character = 0;
+		character = token = 0;
 		number = 0.0f;
+	}
+
+	YYSTYPE(const bool &rhs)
+	{
+		setNumber(rhs ? 1 : 0);
+	}
+
+	void empty()
+	{
+		number = 0;
+		character = token = 0;
+		text = "";
 	}
 
 	void setNumber(float num)
 	{
 		number = num;
-		character = 0;
+		character = token = 0;
 		text = "";
 	}
 
@@ -38,6 +51,15 @@ public:
 	void setCharacter(int c)
 	{
 		character = c;
+		token = 0;
+		number = 0.0f;
+		text = "";
+	}
+
+	void setToken(int c)
+	{
+		character = c;
+		token = c;
 		number = 0.0f;
 		text = "";
 	}
@@ -47,6 +69,8 @@ public:
 	void setText(const std::string &str)
 	{
 		text = str;
+		character = token = 0;
+		number = 0.0f;
 	}
 
 	std::string &asString() { return text; }
@@ -82,12 +106,12 @@ more_values:
 	| ',' values
 	;
 
-value: STRING { printf("%s\n", lvalStack.top().asString().c_str()); }
-	| NUM { printf("%3.2f\n", lvalStack.top().asNumber()); }
+value: STRING { printf("%s\n", vs.back().asString().c_str()); }
+	| NUM { printf("%3.2f\n", vs.back().asNumber()); }
 	| object
 	| array
-	| TRUE
-	| FALSE
+	| TRUE { $$ = true; }
+	| FALSE { $$ = false; }
 	| NULL
 	;
 
@@ -95,6 +119,7 @@ value: STRING { printf("%s\n", lvalStack.top().asString().c_str()); }
 
 //
 using TokenTable = std::map<std::string, int>;
+
 TokenTable keywords = {
 	{ "true", TS_TRUE },
 	{ "false", TS_FALSE },
@@ -202,6 +227,9 @@ int yylex()
 	char buf[DEFAULT_TEXT_BUF];
 	char *pBuf = buf;
 
+	// make sure we clear out any previous data
+	yylval.empty();
+
 	// skip any leading WS
 	chr = skipLeadingWhiteSpace();
 
@@ -235,6 +263,7 @@ int yylex()
 		auto iterTokens = keywords.find(_strlwr(buf));
 		if (iterTokens != keywords.end())
 		{
+			yylval.setToken(iterTokens->second);
 			return iterTokens->second;
 		}
 

@@ -114,7 +114,7 @@ void BNFParser::DoRules()
 			}
 
 			// add production to our list of productions
-			Production prod(lhs, rhs, action, (action != "") ? actionIndex++ : 0);
+			Production prod(lhs, rhs, action, actionIndex++);
 			productions.push_back(prod);
 
 		} while (lookahead == '|' && match('|'));
@@ -188,7 +188,7 @@ void BNFParser::OutputSymbols()
 	fputs("\n\t// Action symbols\n", yyout);
 	for (auto i = 0; i < productions.size(); i++)
 	{
-		if (productions[i].rhs.action != "")
+		//if (productions[i].rhs.action != "")
 			fprintf(yyout, "\tACTION_%d,\n", productions[i].rhs.actionIndex);
 	}
 
@@ -196,12 +196,12 @@ void BNFParser::OutputSymbols()
 
 	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
 	fputs("protected:\n", yyhout);
-	fputs("\tstd::stack<YYSTYPE> lvalStack;\n\n", yyhout);
+	fputs("\tstd::vector<YYSTYPE> vs;\n\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
 	fputs("\tint yyaction(int action) override;\n\n", yyhout);
-	fputs("\tvoid tokenMatch(int token) override { lvalStack.push(yylval); }\n", yyhout);
-	fputs("\tvoid ruleMatch(int rule) override { /*while (!lvalStack.empty()) lvalStack.pop();*/ }\n", yyhout);
+	fputs("\tvoid tokenMatch(int token) override { vs.push_back(yylval); }\n", yyhout);
+	fputs("\tvoid pop(int count) { for (int i = 0; i < count; i++) vs.pop_back(); }", yyhout);
 	fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
 	fputs("};\n", yyhout);
 }
@@ -331,6 +331,30 @@ void BNFParser::GenerateTable()
 }
 
 //
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+	size_t start_pos = str.find(from);
+	if (start_pos == std::string::npos)
+		return false;
+	str.replace(start_pos, from.length(), to);
+	return true;
+}
+
+
+//
+void BNFParser::TemplateReplace(std::string &str, size_t symbolCount)
+{
+	char buf[256];
+
+	replace(str, "$$", "top");
+
+	for (auto i = 1; i < symbolCount; i++)
+	{
+		sprintf(buf, "$%d", i);
+		replace(str, buf, "vs[vs.size() - i]");
+	}
+}
+
+//
 void BNFParser::OutputTable()
 {
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
@@ -391,7 +415,7 @@ void BNFParser::OutputTable()
 
 			fputs("\t\t\tss.pop();\n", yyout);
 
-			if (t->second.action != "")
+			//if (t->second.action != "")
 			{
 				fprintf(yyout, "\t\t\tss.push(ACTION_%d);\n", t->second.actionIndex);
 			}
@@ -422,18 +446,41 @@ void BNFParser::OutputTable()
 	fprintf(yyout, "int %s::yyaction(int action)\n{\n", outputFileName.c_str());
 	fprintf(yyout, "\tswitch (action)\n\t{\n");
 
+	std::set<int> actions;
 	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
 	{
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
-			if (t->second.action != "")
+			if (actions.insert(t->second.actionIndex).second == false)
+				continue;
+
+			fprintf(yyout, "\tcase ACTION_%d:\n", t->second.actionIndex);
+			fputs("\t\t{\n", yyout);
+
+			if (t->second.symbols.size())
 			{
-				fprintf(yyout, "\tcase ACTION_%d:\n", t->second.actionIndex);
-				fputs("\t\t{\n", yyout);
-				fprintf(yyout, "\t\t\t%s\n", t->second.action.c_str());
-				fputs("\t\t}\n\t\tbreak;\n\n", yyout);
+				fputs("\t\t\tauto top = vs.back();\n", yyout);
+
+				// if there is an action then output that code
+				if (t->second.action != "")
+				{
+					TemplateReplace(t->second.action, t->second.symbols.size());
+					fprintf(yyout, "\t\t\t%s\n", t->second.action.c_str());
+				}
+				else {
+					//				fprintf();
+				}
+
+				fprintf(yyout, "\t\t\tpop(%zd);\n", t->second.symbols.size());
+				fputs("\t\t\tvs.push_back(top);\n", yyout);
 			}
+			else
+			{
+				fputs("\t\t\t// do nothing!\n", yyout);
+			}
+
+			fputs("\t\t}\n\t\tbreak;\n\n", yyout);
 		}
 	}
 

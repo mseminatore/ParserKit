@@ -71,6 +71,7 @@ protected:
 	void OutputSymbols();
 	void OutputProductions();
 	void OutputTable();
+	void TemplateReplace(std::string &str, size_t symbolCount);
 
 	bool AreAllNullable(size_t start, size_t end, const SymbolList &symbols);
 
