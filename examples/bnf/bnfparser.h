@@ -74,6 +74,7 @@ protected:
 	void TemplateReplace(std::string &str, size_t symbolCount);
 
 	bool AreAllNullable(size_t start, size_t end, const SymbolList &symbols);
+	std::string getRule(const std::string &lhs, RightHandSide &rhs);
 
 public:
 	BNFParser();

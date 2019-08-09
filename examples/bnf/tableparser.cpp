@@ -42,7 +42,7 @@ int TableParser::yyparse()
 				yylog("Action %d\n", ss.top());
 
 				ss.pop();
-				continue; // there might be more actions on the stack!
+				continue; // there might still be more actions on the stack!
 			}
 
 			rule = table[ss.top()][token];

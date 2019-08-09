@@ -355,6 +355,31 @@ void BNFParser::TemplateReplace(std::string &str, size_t symbolCount)
 }
 
 //
+std::string BNFParser::getRule(const std::string &lhs, RightHandSide &rhs)
+{
+	std::string str = lhs;
+
+	str += " -> ";
+
+	for (auto i = rhs.symbols.begin(); i != rhs.symbols.end(); i++)
+	{
+		char *prefix = "", *postfix = "";
+
+		if (i->type == SymbolType::CharTerminal)
+		{
+			prefix = postfix = "'";
+		}
+
+		str += prefix;
+		str += i->name;
+		str += postfix;
+		str += " ";
+	}
+
+	return str;
+}
+
+//
 void BNFParser::OutputTable()
 {
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
@@ -396,23 +421,11 @@ void BNFParser::OutputTable()
 		auto entry = *nt;
 		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
 		{
-			fprintf(yyout, "\t\t// %s -> ", entry.first.c_str());
-			for (auto i = t->second.symbols.begin(); i != t->second.symbols.end(); i++)
-			{
-				char *prefix = "", *postfix = "";
+			auto str = getRule(entry.first, t->second);
 
-				if (i->type == SymbolType::CharTerminal)
-				{
-					prefix = postfix = "'";
-				}
-
-				fprintf(yyout, "%s%s%s ", prefix, i->name.c_str(), postfix);
-			}
-
-			fputs("\n", yyout);
-
+			fprintf(yyout, "\t\t// %s\n", str.c_str());
 			fprintf(yyout, "\t\tcase %d:\n", index++);
-
+			fprintf(yyout, "\t\t\tyylog(\"%s\\n\");\n", str.c_str());
 			fputs("\t\t\tss.pop();\n", yyout);
 
 			//if (t->second.action != "")

@@ -84,7 +84,7 @@ public:
 
 %%
 
-object: '{' key_values '}' { puts("found an object!"); }
+object: '{' key_values '}'
 	;
 
 key_values:
@@ -106,12 +106,12 @@ more_values:
 	| ',' values
 	;
 
-value: STRING { printf("%s\n", vs.back().asString().c_str()); }
-	| NUM { printf("%3.2f\n", vs.back().asNumber()); }
+value: STRING
+	| NUM
 	| object
 	| array
-	| TRUE { $$ = true; }
-	| FALSE { $$ = false; }
+	| TRUE
+	| FALSE
 	| NULL
 	;
 
