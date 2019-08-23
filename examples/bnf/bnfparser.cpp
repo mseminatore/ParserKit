@@ -200,8 +200,8 @@ void BNFParser::OutputSymbols()
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
 	fputs("\tint yyaction(int action) override;\n\n", yyhout);
-	fputs("\tvoid tokenMatch(int token) override { vs.push_back(yylval); }\n", yyhout);
-	fputs("\tvoid pop(int count) { for (int i = 0; i < count; i++) vs.pop_back(); }", yyhout);
+	fputs("\tvoid tokenMatch(int token) override { vs.push_back(yylval); yylog(\"Pushed a symbol onto the value stack: %d\\n\", vs.size()); }\n", yyhout);
+	fputs("\tvoid pop(int count) { for (int i = 0; i < count; i++) vs.pop_back(); yylog(\"\\nPopping %d items from value stack.\\n\", count); }", yyhout);
 	fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
 	fputs("};\n", yyhout);
 }
