@@ -1,5 +1,9 @@
+#pragma once
+
 #ifndef __BASEPARSER_H
 #define __BASEPARSER_H
+
+
 
 #include <stdio.h>
 #include <assert.h>
@@ -63,6 +67,7 @@ public:
 
 	virtual void expected(int token);
 	virtual int match(int token);
+	virtual int match() { return match(lookahead); }
 
 	void setFileName(std::string &str)
 	{
