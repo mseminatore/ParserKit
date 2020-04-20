@@ -28,7 +28,7 @@ TokenTable _tokenTable[] =
 //
 XMLParser::XMLParser() : BaseParser(std::make_unique<SymbolTable>())
 {
-	m_lexer = std::make_unique<LexicalAnalzyer>(_tokenTable, this, &yylval);
+	m_lexer = std::make_unique<LexicalAnalyzer>(_tokenTable, this, &yylval);
 }
 
 //
