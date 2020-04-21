@@ -356,7 +356,9 @@ void LexicalAnalyzer::skipToEOL(void)
 	int c;
 
 	// skip to EOL
-	while ((c = getChar()) != '\n');
+	do {
+		c = getChar();
+	} while (c != '\n' && c != EOF);
 
 	// put last character back
 	ungetChar(c);
