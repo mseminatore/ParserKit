@@ -82,7 +82,6 @@ protected:
 	//char m_szCurrentSourceLineText[256];
 	//int m_iCurrentSourceLineIndex;
 
-	// TODO - this should be a std::vector instead!
 	using FDStack = std::vector<FDNode>;
 	FDStack m_fdStack;
 

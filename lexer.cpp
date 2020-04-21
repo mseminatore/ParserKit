@@ -122,9 +122,11 @@ const char *LexicalAnalyzer::getLexemeFromToken(int token)
 	if (token < 256)
 		return (char*)token;
 
+	// look for internal tokens
 	if (token > 255 && token < TV_USER)
 		return _internalTokenLexemes[token - 256];
 
+	// look for user tokens
 	auto iter = m_tokenTable.begin();
 	for (; iter != m_tokenTable.end(); iter++)
 	{
