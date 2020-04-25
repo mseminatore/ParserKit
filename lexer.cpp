@@ -612,7 +612,7 @@ yylex01:
 			return iterTokens->second;
 		}
 
-		// see if symbol is already in symbol table
+		// create or return symbol if it is already in symbol table
 		sym = m_pParser->lookupSymbol(buf);
 		if (!sym)
 		{
