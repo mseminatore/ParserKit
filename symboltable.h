@@ -35,6 +35,7 @@ struct SymbolEntry
 	SymbolType		type;
 	int				srcLine;
 	std::string		srcFile;
+	bool			global;
 
 	unsigned		isReferenced:1;
 	
@@ -56,6 +57,7 @@ struct SymbolEntry
 		ival			= 0;
 		type			= stUndef;
 		isReferenced	= 0;
+		global			= false;
 	}
 };
 
