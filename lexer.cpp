@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "baseparser.h"
 
 //
@@ -145,6 +147,9 @@ int LexicalAnalyzer::popFile()
 	// if we were processing a file, close it
 	if (m_fdStack.back().fdDocument)
 	{
+//		fclose(m_fdStack.back().fdDocument);
+//		m_fdStack.back().fdDocument = nullptr;
+
 		m_fdStack.pop_back();
 		if (m_fdStack.size() == 0)
 			return EOF;
@@ -185,9 +190,9 @@ int LexicalAnalyzer::pushFile(const char *theFile)
 	m_fdStack.push_back(FDNode());
 
 	assert(m_fdStack.back().fdDocument == nullptr);
-	
-	FILE *pFile = nullptr;
-	if (fopen_s(&pFile, theFile, "rt"))
+
+	FILE *pFile = fopen(theFile, "rt");
+	if (nullptr == pFile)
 		return -1;
 
 	m_fdStack.back().fdDocument = pFile;

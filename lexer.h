@@ -70,6 +70,21 @@ protected:
 		void *pUserData;
 
 		FDNode() : fdDocument(nullptr), pTextData(nullptr), filename(""), column(0), yylineno(1), pUserData(nullptr) {}
+
+		// move ctor
+		FDNode(FDNode &&rhs)
+		{
+			fdDocument = rhs.fdDocument;
+			pTextData = rhs.pTextData;
+			filename = rhs.filename;
+			column = rhs.column;
+			yylineno = rhs.yylineno;
+			pUserData = rhs.pUserData;
+			
+			// take ownership of the file ptr
+			rhs.fdDocument = nullptr;
+		}
+
 		virtual ~FDNode() 
 		{
 			if (fdDocument)
