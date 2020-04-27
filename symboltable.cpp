@@ -170,6 +170,14 @@ SymbolEntry *SymbolTable::install(const char *lexeme, SymbolType type)
 	return &(result.first->second);
 }
 
+const char *SymbolTable::getTypeString(int type)
+{
+	if (type <= stUser)
+		return _typeStrings[type];
+
+	return _typeStrings[stUser];
+}
+
 //
 void SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 {
@@ -188,7 +196,7 @@ void SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 			printf("%s(%d) : warning: %s '%s' not referenced.\n", 
 				pSymbol->srcFile.c_str(),
 				pSymbol->srcLine,
-				_typeStrings[pSymbol->type],
+				getTypeString(pSymbol->type),
 				pSymbol->lexeme.c_str()
 				);
 		}
