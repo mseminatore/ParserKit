@@ -416,6 +416,8 @@ int LexicalAnalyzer::getNumber()
  	c = getChar();
 	if (c == '0' && (follow('X', 1, 0) || follow('x', 1, 0)))
 		base = 16;
+	else if (c == '-' || c == '+')
+		*bufptr++ = c;
 	else
 		ungetChar(c);
 
@@ -439,7 +441,8 @@ int LexicalAnalyzer::getNumber()
 	// handle floats and ints
 	if (!strchr(buf, '.'))
 	{
-		m_yylval->ival = strtoul(buf, nullptr, base);
+//		m_yylval->ival = strtoul(buf, nullptr, base);
+		m_yylval->ival = atol(buf);
 		return TV_INTVAL;
 	}
 	else
@@ -578,7 +581,7 @@ yylex01:
 	}
 
 	// look for a number value
-	if (isdigit(chr))
+	if (isdigit(chr) || chr == '-' || chr == '+')
 	{
 		ungetChar(chr);
 		return getNumber();
