@@ -442,7 +442,8 @@ int LexicalAnalyzer::getNumber()
 	if (!strchr(buf, '.'))
 	{
 //		m_yylval->ival = strtoul(buf, nullptr, base);
-		m_yylval->ival = atol(buf);
+		m_yylval->ival = strtol(buf, nullptr, base);
+//		m_yylval->ival = atol(buf);
 		return TV_INTVAL;
 	}
 	else
