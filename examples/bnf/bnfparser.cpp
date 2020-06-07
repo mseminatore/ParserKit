@@ -189,7 +189,9 @@ void BNFParser::OutputSymbols()
 	for (auto i = 0; i < productions.size(); i++)
 	{
 		//if (productions[i].rhs.action != "")
-			fprintf(yyout, "\tACTION_%d,\n", productions[i].rhs.actionIndex);
+			auto str = getRule(productions[i].lhs, productions[i].rhs);
+			fprintf(yyout, "\t// %s\n", str.c_str());
+			fprintf(yyout, "\tACTION_%d,\n\n", productions[i].rhs.actionIndex);
 	}
 
 	fputs("};\n\n", yyout);
@@ -335,7 +337,12 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
 	size_t start_pos = str.find(from);
 	if (start_pos == std::string::npos)
 		return false;
-	str.replace(start_pos, from.length(), to);
+
+	while (start_pos != std::string::npos)
+	{
+		str.replace(start_pos, from.length(), to);
+		start_pos = str.find(from);
+	}
 	return true;
 }
 
@@ -343,14 +350,15 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
 //
 void BNFParser::TemplateReplace(std::string &str, size_t symbolCount)
 {
-	char buf[256];
+	char buf[256], buf2[256];
 
 	replace(str, "$$", "top");
 
-	for (auto i = 1; i < symbolCount; i++)
+	for (auto i = 1; i <= symbolCount; i++)
 	{
 		sprintf(buf, "$%d", i);
-		replace(str, buf, "vs[vs.size() - i]");
+		sprintf(buf2, "vs[vs.size() - %d]", i);
+		replace(str, buf, buf2);
 	}
 }
 
@@ -385,7 +393,7 @@ void BNFParser::OutputTable()
 	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
 	fprintf(yyout, "void %s::initTable() {\n", outputFileName.c_str());
 
-	fputs("\t// End Of File marker is last thing we'll see!\n\tss.push(EOF);\n\n", yyout);
+	fputs("\t// End Of File marker is last thing we'll see!\n\tss.push(0);\n\n", yyout);
 
 	// push the start symbol
 	fprintf(yyout, "\t// push the start symbol\n\tss.push(NTS_%s);\n\n", startSymbol.c_str());
@@ -406,7 +414,10 @@ void BNFParser::OutputTable()
 				prefix = postfix = "'";
 			}
 
-			fprintf(yyout, "\ttable[NTS_%s][%s%s%s] = %d;\n", entry.first.c_str(), prefix, t->first.c_str(), postfix, index++);
+			if (t->first == "")
+				fprintf(yyout, "\ttable[NTS_%s][0] = %d;\n", entry.first.c_str(), index++);
+			else
+				fprintf(yyout, "\ttable[NTS_%s][%s%s%s] = %d;\n", entry.first.c_str(), prefix, t->first.c_str(), postfix, index++);
 		}
 	}
 
@@ -428,7 +439,7 @@ void BNFParser::OutputTable()
 			fprintf(yyout, "\t\t\tyylog(\"%s\\n\");\n", str.c_str());
 			fputs("\t\t\tss.pop();\n", yyout);
 
-			//if (t->second.action != "")
+			if (t->second.action != "")
 			{
 				fprintf(yyout, "\t\t\tss.push(ACTION_%d);\n", t->second.actionIndex);
 			}
@@ -468,8 +479,12 @@ void BNFParser::OutputTable()
 			if (actions.insert(t->second.actionIndex).second == false)
 				continue;
 
+			auto str = getRule(t->first, t->second);
+			fprintf(yyout, "\t// %s\n", str.c_str());
+
 			fprintf(yyout, "\tcase ACTION_%d:\n", t->second.actionIndex);
 			fputs("\t\t{\n", yyout);
+			fprintf(yyout, "\t\t\tyylog(\"Action: %s\");\n", str.c_str());
 
 			if (t->second.symbols.size())
 			{
@@ -584,6 +599,13 @@ void BNFParser::ComputeFirst()
 void BNFParser::ComputeFollow()
 {
 	auto done = true;
+
+	// initialize follow set with (start,EOF) and EOF for all nullables
+	follow[startSymbol].insert("");
+	for (auto nullIter = nullable.begin(); nullIter != nullable.end(); nullIter++)
+	{
+		follow[*nullIter].insert("");
+	}
 
 	do
 	{
@@ -718,7 +740,12 @@ int BNFParser::yyparse()
 
 	// copy tail of file to output
 	fputs("\n", yyout);
-	fputc(lookahead, yyout);
+
+	if (lookahead == TV_ID)
+		fputs(yylval.sym->lexeme.c_str(), yyout);
+	else
+		fputc(lookahead, yyout);
+
 	m_lexer->copyToEOF(yyout);
 
 	return 0;

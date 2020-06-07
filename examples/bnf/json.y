@@ -29,7 +29,7 @@ public:
 
 	YYSTYPE(const bool &rhs)
 	{
-		setNumber(rhs ? 1 : 0);
+		setNumber(rhs ? 1.0f : 0.0f);
 	}
 
 	void empty()
@@ -107,7 +107,7 @@ more_values:
 	;
 
 value: STRING
-	| NUM
+	| NUM	{ printf("number %f\n", $1.asNumber());}
 	| object
 	| array
 	| TRUE

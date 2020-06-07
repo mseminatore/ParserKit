@@ -20,13 +20,14 @@ int TableParser::yyparse()
 		if (token == ss.top())
 		{
 			if (token > 0 && token < 256)
-				yylog("\nMatched token: '%c'\n", token);
+				yylog("\nMatched character: '%c'\n", token);
 			else
-				yylog("\nMatched symbol: %d\n", token);
+				yylog("\nMatched token: %d\n", token);
 
-			// save the yylval on the value stack
 			// TODO - what do we push for a non-terminal symbol? yylval is not populated with data!
-			tokenMatch(token);
+			// save the yylval on the value stack
+			if (token)
+				tokenMatch(token);
 
 			// pop the matched symbol from the stack
 			ss.pop();
