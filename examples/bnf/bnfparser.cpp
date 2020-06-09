@@ -38,6 +38,9 @@ void BNFParser::DoRules()
 {
 	int actionIndex = 1;
 
+	yylog("Identify non-terminals");
+	yylog("----------------------");
+
 	// a production starts with a non-terminal LHS
 	while (lookahead == TV_ID)
 	{
@@ -211,6 +214,9 @@ void BNFParser::OutputSymbols()
 //
 void BNFParser::OutputProductions()
 {
+	yylog("\nProductions");
+	yylog("-----------");
+
 	auto iter = productions.begin();
 	for (; iter != productions.end(); iter++)
 	{
@@ -252,30 +258,42 @@ void BNFParser::GenerateTable()
 
 	ComputeFollow();
 
+	yylog("\nNullable non-terminals");
+	yylog("----------------------");
+
 	for (auto iter = nullable.begin(); iter != nullable.end(); iter++)
 	{
 		printf("%s is nullable\n", (*iter).c_str());
 	}
 
+	yylog("\nFirst sets");
+	yylog("----------");
+
 	for (auto iter = first.begin(); iter != first.end(); iter++)
 	{
-		printf("First %s: ", iter->first.c_str());
+		printf("First %s: [", iter->first.c_str());
 		for (auto rhs = iter->second.begin(); rhs != iter->second.end(); rhs++)
 		{
 			printf("%s ", (*rhs).c_str());
 		}
-		puts("");
+		puts("]");
 	}
+
+	yylog("\nFollow sets");
+	yylog("-----------");
 
 	for (auto iter = follow.begin(); iter != follow.end(); iter++)
 	{
-		printf("Follow %s: ", iter->first.c_str());
+		printf("Follow %s: [", iter->first.c_str());
 		for (auto rhs = iter->second.begin(); rhs != iter->second.end(); rhs++)
 		{
 			printf("%s ", (*rhs).c_str());
 		}
-		puts("");
+		puts("]");
 	}
+
+	yylog("\nParse table rules");
+	yylog("-----------------");
 
 	// foreach production
 	for (auto iter = productions.begin(); iter != productions.end(); iter++)
@@ -479,7 +497,7 @@ void BNFParser::OutputTable()
 			if (actions.insert(t->second.actionIndex).second == false)
 				continue;
 
-			auto str = getRule(t->first, t->second);
+			auto str = getRule(entry.first, t->second);
 			fprintf(yyout, "\t// %s\n", str.c_str());
 
 			fprintf(yyout, "\tcase ACTION_%d:\n", t->second.actionIndex);
