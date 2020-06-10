@@ -8,3 +8,7 @@ Provided examples include:
 
 Name | Description
 ---- | -----------
+[json](/examples/json) | JSON parser
+xml | XML parser
+bnf | Simple LL(1) parser generator
+yaml | YAML parser
