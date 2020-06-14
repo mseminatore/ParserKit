@@ -11,20 +11,20 @@ YYSTYPE yylval;
 
 %%
 
-expr: term expr_tail { printf("Result is %4f\n", $$); }
+expr: term expr_tail { $$ = $1; printf("Result is %4f\n", $$); }
     ;
 
 expr_tail:
-    | '+' term expr_tail { $$ = $2 + $$; }
-    | '-' term expr_tail { $$ = $2 - $$; }
+    | '+' term expr_tail { $< = $< + $2; }
+    | '-' term expr_tail { $< = $< - $2; }
     ;
 
 term: factor term_tail
     ;
 
 term_tail:
-    | '*' factor term_tail { $$ = $2 * $$; }
-    | '/' factor term_tail { $$ = $2 / $$; }
+    | '*' factor term_tail { $< = $< * $2; }
+    | '/' factor term_tail { $< = $< / $2; }
     ;
 
 factor: NUMBER
@@ -39,6 +39,8 @@ int yylex()
 {
     int c;
 
+    yylval = 0.0;
+    
     while ((c=getchar()) == ' ' || c == '\t' || c == '\n')
         ;
 

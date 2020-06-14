@@ -41,11 +41,13 @@ int TableParser::yyparse()
 			// perform any actions if they exist
 			if (yyaction(ss.top()))
 			{
-				yylog("Action %d\n", ss.top());
+//				yylog("Action %d\n", ss.top());
 
-				// pop the executed action from the stack
+				// pop the executed action off the stack
 				ss.pop();
-				continue; // there might still be more actions on the stack!
+				
+				// there might be more actions?
+				continue;
 			}
 
 			rule = table[ss.top()][token];

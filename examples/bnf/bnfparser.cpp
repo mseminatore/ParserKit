@@ -1,6 +1,9 @@
 //
 // This parser parses BNF files
 //
+
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "bnfparser.h"
 #include "bnflexer.h"
 
@@ -171,6 +174,7 @@ void BNFParser::OutputSymbols()
 {
 	fputs("#include \"tableparser.h\"\n\n", yyhout);
 //	fputs("enum class Tokens {\n\tERROR = 256,\n", yyhout);
+	fputs("\n// Tokens\n", yyout);
 	fputs("enum {\n\tERROR = 256,\n", yyout);
 
 	// output all the Terminals
@@ -187,25 +191,30 @@ void BNFParser::OutputSymbols()
 		fprintf(yyout, "\tNTS_%s,\n", iter->c_str());
 	}
 
+	fputs("\tLAST_TOKEN\n", yyout);
+	fputs("};\n\n", yyout);
+
 	// output all the action symbols
-	fputs("\n\t// Action symbols\n", yyout);
+	fputs("// Action symbols\n", yyout);
+	fputs("enum {\n", yyout);
+	fputs("\tFIRST_ACTION = LAST_TOKEN,\n", yyout);
+
 	for (auto i = 0; i < productions.size(); i++)
 	{
 		//if (productions[i].rhs.action != "")
 			auto str = getRule(productions[i].lhs, productions[i].rhs);
-			fprintf(yyout, "\t// %s\n", str.c_str());
-			fprintf(yyout, "\tACTION_%d,\n\n", productions[i].rhs.actionIndex);
+			fprintf(yyout, "\tACTION_%d,\t//%s\n", productions[i].rhs.actionIndex, str.c_str());
 	}
 
 	fputs("};\n\n", yyout);
 
 	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
 	fputs("protected:\n", yyhout);
-	fputs("\tstd::vector<YYSTYPE> vs;\n\n", yyhout);
+	fputs("\tstd::vector<std::pair<Symbols, YYSTYPE>> vs;\n\n", yyhout);
 	fputs("\tvoid initTable() override;\n", yyhout);
 	fputs("\tint yyrule(int rule) override;\n", yyhout);
 	fputs("\tint yyaction(int action) override;\n\n", yyhout);
-	fputs("\tvoid tokenMatch(int token) override { vs.push_back(yylval); yylog(\"Pushed a symbol onto the value stack: %d\\n\", vs.size()); }\n", yyhout);
+	fputs("\tvoid tokenMatch(int token) override\n\t{\n\t\tvs.push_back(std::make_pair(token, yylval));\n\t\tyylog(\"Pushed (%d, %f) onto the value stack: %zd\\n\", token, yylval, vs.size());\n\t}\n", yyhout);
 	fputs("\tvoid pop(int count) { for (int i = 0; i < count; i++) vs.pop_back(); yylog(\"\\nPopping %d items from value stack.\\n\", count); }", yyhout);
 	fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
 	fputs("};\n", yyhout);
@@ -370,12 +379,16 @@ void BNFParser::TemplateReplace(std::string &str, size_t symbolCount)
 {
 	char buf[256], buf2[256];
 
-	replace(str, "$$", "top");
+	sprintf(buf, "vs[vs.size() - %d].second", (int)symbolCount + 1);
+	replace(str, "$$", buf);
+
+	sprintf(buf, "vs[vs.size() - %d].second", (int)symbolCount + 2);
+	replace(str, "$<", buf);
 
 	for (auto i = 1; i <= symbolCount; i++)
 	{
 		sprintf(buf, "$%d", i);
-		sprintf(buf2, "vs[vs.size() - %d]", i);
+		sprintf(buf2, "vs[vs.size() - %d].second", 1 + symbolCount - i);
 		replace(str, buf, buf2);
 	}
 }
@@ -418,24 +431,35 @@ void BNFParser::OutputTable()
 
 	fputs("\t// setup the LL(1) parse table\n", yyout);
 
-	// write out the parser table
+	// write out the parser table rules
 	auto index = 1;
-	for (auto nt = parseTable.begin(); nt != parseTable.end(); nt++)
+	for (auto entry = parseTable.begin(); entry != parseTable.end(); entry++)
 	{
-		auto entry = *nt;
-		for (auto t = entry.second.begin(); t != entry.second.end(); t++)
+		for (auto item = entry->second.begin(); item != entry->second.end(); item++)
 		{
 			char *prefix = "TS_", *postfix = "";
-			auto sym = m_pSymbolTable->lookup(t->first.c_str());
+			auto sym = m_pSymbolTable->lookup(item->first.c_str());
 			if (!sym)
 			{
 				prefix = postfix = "'";
 			}
 
-			if (t->first == "")
-				fprintf(yyout, "\ttable[NTS_%s][0] = %d;\n", entry.first.c_str(), index++);
+			if (item->first == "")
+				fprintf(yyout, "\ttable[NTS_%s][0] = %d;\n", entry->first.c_str(), index++);
 			else
-				fprintf(yyout, "\ttable[NTS_%s][%s%s%s] = %d;\n", entry.first.c_str(), prefix, t->first.c_str(), postfix, index++);
+				fprintf(yyout, "\ttable[NTS_%s][%s%s%s] = %d;\n", entry->first.c_str(), prefix, item->first.c_str(), postfix, index++);
+		}
+	}
+
+	fputs("\n", yyout);
+
+	// write out the parser table actions
+	for (auto entry = parseTable.begin(); entry != parseTable.end(); entry++)
+	{
+		for (auto item = entry->second.begin(); item != entry->second.end(); item++)
+		{
+//			if (item->second.action != "")
+				fprintf(yyout, "\tactions[NTS_%s] = ACTION_%d;\n", entry->first.c_str(), item->second.actionIndex);
 		}
 	}
 
@@ -455,9 +479,9 @@ void BNFParser::OutputTable()
 			fprintf(yyout, "\t\t// %s\n", str.c_str());
 			fprintf(yyout, "\t\tcase %d:\n", index++);
 			fprintf(yyout, "\t\t\tyylog(\"%s\\n\");\n", str.c_str());
-			fputs("\t\t\tss.pop();\n", yyout);
+			fputs("\t\t\ttokenMatch(ss.top());\n\t\t\tss.pop();\n", yyout);
 
-			if (t->second.action != "")
+//			if (t->second.action != "")
 			{
 				fprintf(yyout, "\t\t\tss.push(ACTION_%d);\n", t->second.actionIndex);
 			}
@@ -502,12 +526,10 @@ void BNFParser::OutputTable()
 
 			fprintf(yyout, "\tcase ACTION_%d:\n", t->second.actionIndex);
 			fputs("\t\t{\n", yyout);
-			fprintf(yyout, "\t\t\tyylog(\"Action: %s\");\n", str.c_str());
+			fprintf(yyout, "\t\t\tyylog(\"Action: %s\\n\");\n", str.c_str());
 
 			if (t->second.symbols.size())
 			{
-				fputs("\t\t\tauto top = vs.back();\n", yyout);
-
 				// if there is an action then output that code
 				if (t->second.action != "")
 				{
@@ -515,11 +537,11 @@ void BNFParser::OutputTable()
 					fprintf(yyout, "\t\t\t%s\n", t->second.action.c_str());
 				}
 				else {
-					//				fprintf();
+					// default is to left-propagate the first symbols value
+					fprintf(yyout, "\t\t\tvs[vs.size() - %zd].second = vs[vs.size() - %zd].second;\n", t->second.symbols.size() + 1, t->second.symbols.size());
 				}
 
 				fprintf(yyout, "\t\t\tpop(%zd);\n", t->second.symbols.size());
-				fputs("\t\t\tvs.push_back(top);\n", yyout);
 			}
 			else
 			{
