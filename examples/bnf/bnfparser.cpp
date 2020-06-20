@@ -230,15 +230,15 @@ void BNFParser::OutputProductions()
 	for (; iter != productions.end(); iter++)
 	{
 		Production prod = *iter;
-		printf("%s: ", prod.lhs.c_str());
+		yylog("%s: ", prod.lhs.c_str());
 
 		auto symbols = prod.rhs.symbols.begin();
 		for (; symbols != prod.rhs.symbols.end(); symbols++)
 		{
-			printf("%s ", symbols->name.c_str());
+			yylog("%s ", symbols->name.c_str());
 		}
 
-		puts(";");
+		yylog(";");
 	}
 }
 
@@ -272,7 +272,7 @@ void BNFParser::GenerateTable()
 
 	for (auto iter = nullable.begin(); iter != nullable.end(); iter++)
 	{
-		printf("%s is nullable\n", (*iter).c_str());
+		yylog("%s is nullable\n", (*iter).c_str());
 	}
 
 	yylog("\nFirst sets");
@@ -280,12 +280,12 @@ void BNFParser::GenerateTable()
 
 	for (auto iter = first.begin(); iter != first.end(); iter++)
 	{
-		printf("First %s: [", iter->first.c_str());
+		yylog("First %s: [", iter->first.c_str());
 		for (auto rhs = iter->second.begin(); rhs != iter->second.end(); rhs++)
 		{
-			printf("%s ", (*rhs).c_str());
+			yylog("%s ", (*rhs).c_str());
 		}
-		puts("]");
+		yylog("]");
 	}
 
 	yylog("\nFollow sets");
@@ -293,12 +293,12 @@ void BNFParser::GenerateTable()
 
 	for (auto iter = follow.begin(); iter != follow.end(); iter++)
 	{
-		printf("Follow %s: [", iter->first.c_str());
+		yylog("Follow %s: [", iter->first.c_str());
 		for (auto rhs = iter->second.begin(); rhs != iter->second.end(); rhs++)
 		{
-			printf("%s ", (*rhs).c_str());
+			yylog("%s ", (*rhs).c_str());
 		}
-		puts("]");
+		yylog("]");
 	}
 
 	yylog("\nParse table rules");
@@ -323,12 +323,12 @@ void BNFParser::GenerateTable()
 					yywarning(Position(sym), "Conflict! Production for non-terminal '%s' is ambiguous.", lhs.c_str());
 				}
 
-				printf("(%s, %s): %s -> ", lhs.c_str(), (*followy).c_str(), lhs.c_str());
+				yylog("(%s, %s): %s -> ", lhs.c_str(), (*followy).c_str(), lhs.c_str());
 				for (auto i = rhs.begin(); i != rhs.end(); i++)
 				{
-					printf("%s ", i->name.c_str());
+					yylog("%s ", i->name.c_str());
 				}
-				puts("");
+				yylog("");
 			}
 		}
 
@@ -347,12 +347,12 @@ void BNFParser::GenerateTable()
 						yywarning(Position(sym), "Conflict! Production for non-terminal '%s' is ambiguous.", lhs.c_str());
 					}
 
-					printf("(%s, %s): %s -> ", lhs.c_str(), (*firsty).c_str(), lhs.c_str());
+					yylog("(%s, %s): %s -> ", lhs.c_str(), (*firsty).c_str(), lhs.c_str());
 					for (auto rhsIter = rhs.begin(); rhsIter != rhs.end(); rhsIter++)
 					{
-						printf("%s ", rhsIter->name.c_str());
+						yylog("%s ", rhsIter->name.c_str());
 					}
-					puts("");
+					yylog("");
 				}
 			}
 		}
@@ -388,7 +388,7 @@ void BNFParser::TemplateReplace(std::string &str, size_t symbolCount)
 	for (auto i = 1; i <= symbolCount; i++)
 	{
 		sprintf(buf, "$%d", i);
-		sprintf(buf2, "vs[vs.size() - %d].second", 1 + symbolCount - i);
+		sprintf(buf2, "vs[vs.size() - %d].second", (int)(1 + symbolCount - i));
 		replace(str, buf, buf2);
 	}
 }

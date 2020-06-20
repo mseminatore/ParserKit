@@ -233,6 +233,9 @@ int yylex()
 	// skip any leading WS
 	chr = skipLeadingWhiteSpace();
 
+    if (chr == EOF)
+        return 0;
+
 	// look for a number value
 	if (isdigit(chr))
 	{
@@ -280,8 +283,11 @@ int main()
 {
 	jsonparser parser(yylex);
 
-	parser.setDebug(true);
+    // set to true to see parsing details
+	//parser.setDebug(true);
 	parser.yyparse();
-	
+
+	printf("Succesful parse.\n");
+
 	return 0;
 }

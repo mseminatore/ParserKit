@@ -64,8 +64,11 @@ int main(int argc, char *argv[])
 {
 	calc parser(yylex);
 
-	parser.setDebug(true);
+    // set to true to see parsing details
+//	parser.setDebug(true);
 	parser.yyparse();
+
+	printf("Succesful parse.\n");
 	
 	return 0;
 }
