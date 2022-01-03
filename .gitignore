@@ -44,3 +44,12 @@
 /examples/**/Debug
 /examples/**/.vs
 
+# test files
+*.bnf
+
+# Sample generated files
+/examples/bnf/calc.cpp
+/examples/bnf/calc.h
+/examples/bnf/jsonparser.cpp
+/examples/bnf/jsonparser.h
+
