@@ -1,5 +1,5 @@
 //
-// This parser parses JSON files per definition at https://json.org
+// This parser parses XML files
 //
 #include "xmlparser.h"
 
