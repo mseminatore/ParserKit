@@ -107,6 +107,8 @@ protected:
 	bool m_bUnixComments;
 	bool m_bCPPComments;
 	bool m_bCStyleComments;
+	bool m_bASMComments;
+
 	bool m_bHexNumbers;
 	bool m_bCharLiterals;
 
@@ -168,6 +170,8 @@ public:
 	void setUnixComments(bool onoff)	{ m_bUnixComments = onoff; }
 	void setCPPComments(bool onoff)		{ m_bCPPComments = onoff; }
 	void setCStyleComments(bool onoff)	{ m_bCStyleComments = onoff; }
+	void setASMComments(bool onoff)		{ m_bASMComments = onoff;  }
+
 	void setHexNumbers(bool onoff)		{ m_bHexNumbers = onoff; }
 	void setCharLiterals(bool onoff)	{ m_bCharLiterals = onoff; }
 

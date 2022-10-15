@@ -41,6 +41,8 @@ LexicalAnalyzer::LexicalAnalyzer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	m_bUnixComments		= false;
 	m_bCPPComments		= false;
 	m_bCStyleComments	= false;
+	m_bASMComments		= false;
+
 	m_bHexNumbers		= false;
 	m_bCharLiterals		= false;
 
@@ -579,6 +581,13 @@ yylex01:
 			cstyle_comment();
 			goto yylex01;
 		}
+	}
+
+	// handle ASM style comments
+	if (m_bASMComments && chr == ';')
+	{
+		skipToEOL();
+		goto yylex01;
 	}
 
 	// look for a number value
