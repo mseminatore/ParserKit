@@ -54,8 +54,6 @@ union YYSTYPE
 };
 
 //
-//
-//
 class LexicalAnalyzer
 {
 protected:
@@ -112,7 +110,7 @@ protected:
 	bool m_bHexNumbers;
 	bool m_bCharLiterals;
 
-	bool m_bCaseInsensitive;
+	bool m_bCaseSensitive;
 
 	int (*compare_function)(const char*, const char*);
 

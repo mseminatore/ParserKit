@@ -34,8 +34,8 @@ LexicalAnalyzer::LexicalAnalyzer(TokenTable *aTokenTable, BaseParser *pParser, Y
 	for (; aTokenTable->lexeme; aTokenTable++)
 		m_tokenTable[aTokenTable->lexeme] = aTokenTable->token;
 
-	compare_function	= _stricmp;
-	m_bCaseInsensitive	= true;
+	compare_function	= strcmp;
+	m_bCaseSensitive	= true;
 
 	// setup lexical analysis defaults
 	m_bUnixComments		= false;
@@ -114,7 +114,7 @@ void LexicalAnalyzer::yywarning(const char *s)
 void LexicalAnalyzer::caseSensitive(bool onoff /*= true*/)
 {
 	compare_function	= (onoff) ? strcmp : _stricmp;
-	m_bCaseInsensitive	= onoff;
+	m_bCaseSensitive	= onoff;
 }
 
 //===============================================================
