@@ -5,39 +5,35 @@
 
 #define ARRAY_SIZE(p)	(size_t(sizeof(p) / sizeof(p[0])))
 
-//
-//
-//
+// Define symbol types
 enum
 {
-	stUndef,
+	stUndef,			// undefined symbol
 
 	stEnum,				// enums are integers
 	stStringLiteral,	// string literal values
-	stFloat,
-	stInteger, 
-	stChar, 
-	stDefine,
-	stUser,
+	stFloat,			// floating point value
+	stInteger,			// integer value
+	stChar,				// character value
+	stDefine,			// preprocessor define
+	stUser,				// user-defined symbol type
 
 	stNumSymbolTypes
 };
 
 using SymbolType = int;
 
-//
-//
-//
+// Define symbol table entry
 struct SymbolEntry
 {
 	// common
-	std::string		lexeme;
-	SymbolType		type;
-	int				srcLine;
-	std::string		srcFile;
-	bool			global;
+	std::string		lexeme;		// text of symbol
+	SymbolType		type;		// type of the symbol
+	int				srcLine;	// source file line number
+	std::string		srcFile;	// source file name
+	bool			global;		// is this a global var
 
-	unsigned		isReferenced:1;
+	unsigned		isReferenced:1;	// was this symbol referenced
 	
 	// if this symbol represents a literal value 
 	union
@@ -61,7 +57,7 @@ struct SymbolEntry
 	}
 };
 
-//
+// Represents a source file position
 struct Position
 {
 	int				srcLine;
@@ -83,9 +79,7 @@ struct Position
 	}
 };
 
-//
-//
-//
+// Define symbol table class
 class SymbolTable
 {
 protected:
