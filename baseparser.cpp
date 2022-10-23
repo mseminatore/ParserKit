@@ -1,7 +1,10 @@
 #include "baseparser.h"
 #include <assert.h>
 #include <stdarg.h>
-#include <direct.h>
+
+#ifdef _WIN32
+#	include <direct.h>
+#endif
 
 //======================================================================
 //
