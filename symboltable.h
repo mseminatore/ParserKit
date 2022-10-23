@@ -96,7 +96,7 @@ public:
 protected:
 	map_iterator m_globalIter;
 
-	const char *SymbolTable::getTypeString(int type);
+	const char *getTypeString(int type);
 
 public:
 	SymbolTable();
