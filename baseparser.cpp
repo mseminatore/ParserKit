@@ -193,7 +193,7 @@ int BaseParser::parseData(char *textToParse, const char *fileName, void *pUserDa
 		return rv;
 	}
 
-	// TODO - should return the value from yypars()
+	// TODO - should return the value from yyparse()?
 	yyparse();
 
 	return 0;
