@@ -113,7 +113,12 @@ void LexicalAnalyzer::yywarning(const char *s)
 //
 void LexicalAnalyzer::caseSensitive(bool onoff /*= true*/)
 {
+#ifdef _WIN32
 	compare_function	= (onoff) ? strcmp : _stricmp;
+#else
+	compare_function	= (onoff) ? strcmp : strcasecmp;
+#endif
+
 	m_bCaseSensitive	= onoff;
 }
 

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <list>
 #include <map>
+#include <string>
 #include "symboltable.h"
 
 //
@@ -96,11 +97,11 @@ void SymbolTable::dumpContents()
 		for (; iter != (*riter).end(); iter++)
 		{
 			if (iter->second.type == stInteger)
-				sprintf_s(szText, "%s\t(%u, 0x%08X)\n", iter->first.c_str(), iter->second.ival, iter->second.ival);
+				sprintf(szText, "%s\t(%u, 0x%08X)\n", iter->first.c_str(), iter->second.ival, iter->second.ival);
 			else
-				sprintf_s(szText, "%s\t%f\n", iter->first.c_str(), iter->second.fval);
+				sprintf(szText, "%s\t%f\n", iter->first.c_str(), iter->second.fval);
 
-			printf(szText);
+			puts(szText);
 		}
 	}
 }

@@ -164,18 +164,18 @@ int BaseParser::parseFile (const char *filename)
 #ifdef _WIN32
 	char szFullPath[_MAX_PATH];
 	char workingDir[_MAX_PATH], drive[_MAX_DRIVE], dir[_MAX_DIR], file[_MAX_FNAME], ext[_MAX_EXT];
-	char oldWorkdingDir[_MAX_PATH];
+	char oldWorkingDir[_MAX_PATH];
 
 	_fullpath(szFullPath, filename, sizeof(szFullPath));
 	_splitpath_s(szFullPath, drive, dir, file, ext);
 	sprintf_s(workingDir, "%s%s", drive, dir);
-	_getdcwd(_getdrive(), oldWorkdingDir, sizeof(oldWorkdingDir));
+	_getdcwd(_getdrive(), oldWorkingDir, sizeof(oldWorkingDir));
 	_chdir(workingDir);
 #else
-	char workingDir[MAXPATHLEN], oldWorkdingDir[MAXPATHLEN];
-	strcpy(workingDir, dirname());
+	char workingDir[PATH_MAX], oldWorkingDir[PATH_MAX];
+	strcpy(workingDir, dirname((char*)filename));
 
-	getcwd(oldWorkdingDir);
+	getcwd(oldWorkingDir, PATH_MAX);
 	chdir(workingDir);
 #endif
 
@@ -184,13 +184,13 @@ int BaseParser::parseFile (const char *filename)
 	if (rv != 0)
 	{
 		yyerror("Couldn't open file: %s", filename);
-		_chdir(oldWorkdingDir);
+		_chdir(oldWorkingDir);
 		return rv;
 	}
 
 	yyparse();
 
-	_chdir(oldWorkdingDir);
+	_chdir(oldWorkingDir);
 	return 0;
 }
 
