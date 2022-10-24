@@ -1,9 +1,15 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "baseparser.h"
 #include <assert.h>
 #include <stdarg.h>
 
 #ifdef _WIN32
 #	include <direct.h>
+#else
+#	include <libgen.h>
+#	include <unistd.h>
+#	define _chdir chdir
 #endif
 
 //======================================================================
@@ -14,7 +20,7 @@ BaseParser::BaseParser(std::unique_ptr<SymbolTable> symbolTable)
 	m_lexer			= nullptr;
 	m_errorCount	= 0;
 	m_warningCount	= 0;
-	m_pSymbolTable = std::move(symbolTable);
+	m_pSymbolTable	= std::move(symbolTable);
 }
 
 //
@@ -30,10 +36,10 @@ void BaseParser::yyerror(const Position &pos, const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-	vsprintf_s(buf, fmt, argptr);
+		vsprintf(buf, fmt, argptr);
 	va_end(argptr);
 
-	sprintf_s(s, "%s(%d) : error near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
+	sprintf(s, "%s(%d) : error near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
 
 	m_errorCount++;
 
@@ -48,10 +54,10 @@ void BaseParser::yyerror(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf_s(buf, fmt, argptr);
+		vsprintf(buf, fmt, argptr);
 	va_end(argptr);
 
-	sprintf_s(s, "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
+	sprintf(s, "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
 	m_errorCount++;
 
@@ -66,10 +72,10 @@ void BaseParser::yywarning(const Position &pos, const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-	vsprintf_s(buf, fmt, argptr);
+		vsprintf(buf, fmt, argptr);
 	va_end(argptr);
 
-	sprintf_s(s, "%s(%d) : warning near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
+	sprintf(s, "%s(%d) : warning near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
 
 	m_warningCount++;
 
@@ -84,10 +90,10 @@ void BaseParser::yywarning(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf_s(buf, fmt, argptr);
+		vsprintf(buf, fmt, argptr);
 	va_end(argptr);
 
-	sprintf_s(s, "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
+	sprintf(s, "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
 	m_warningCount++;
 
@@ -105,7 +111,7 @@ void BaseParser::yylog(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf_s(buf, fmt, argptr);
+		vsprintf(buf, fmt, argptr);
 	va_end(argptr);
 
 	puts(buf);
@@ -152,17 +158,27 @@ int BaseParser::yyparse()
 int BaseParser::parseFile (const char *filename)
 {
 	int rv;
+
+	assert(filename);
+
+#ifdef _WIN32
 	char szFullPath[_MAX_PATH];
 	char workingDir[_MAX_PATH], drive[_MAX_DRIVE], dir[_MAX_DIR], file[_MAX_FNAME], ext[_MAX_EXT];
 	char oldWorkdingDir[_MAX_PATH];
-
-	assert(filename);
 
 	_fullpath(szFullPath, filename, sizeof(szFullPath));
 	_splitpath_s(szFullPath, drive, dir, file, ext);
 	sprintf_s(workingDir, "%s%s", drive, dir);
 	_getdcwd(_getdrive(), oldWorkdingDir, sizeof(oldWorkdingDir));
 	_chdir(workingDir);
+#else
+	char workingDir[MAXPATHLEN], oldWorkdingDir[MAXPATHLEN];
+	strcpy(workingDir, dirname());
+
+	getcwd(oldWorkdingDir);
+	chdir(workingDir);
+#endif
+
 
 	rv = m_lexer->pushFile(filename);
 	if (rv != 0)
@@ -172,7 +188,6 @@ int BaseParser::parseFile (const char *filename)
 		return rv;
 	}
 
-	// TODO - should return the value from yypars()
 	yyparse();
 
 	_chdir(oldWorkdingDir);
