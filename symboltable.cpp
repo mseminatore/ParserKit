@@ -182,11 +182,12 @@ const char *SymbolTable::getTypeString(int type)
 }
 
 //
-void SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
+int SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 {
 	SymbolMap::iterator iter;
 	SymbolStack::reverse_iterator current_level_riter = m_symbolTable.rbegin();
 	SymbolEntry *pSymbol;
+	int count = 0;
 
 	// foreach symbol at the current top of stack
 	iter = (*current_level_riter).begin();
@@ -196,6 +197,7 @@ void SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 
 		if (!pSymbol->isReferenced)
 		{
+			count++;
 			printf("%s(%d) : warning: %s '%s' not referenced.\n", 
 				pSymbol->srcFile.c_str(),
 				pSymbol->srcLine,
@@ -204,4 +206,6 @@ void SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 				);
 		}
 	}
+
+	return count;
 }

@@ -119,7 +119,7 @@ public:
 	void pop();
 
 	void dumpContents();
-	void dumpUnreferencedSymbolsAtCurrentLevel();
+	int dumpUnreferencedSymbolsAtCurrentLevel();
 };
 
 #endif	// __SYMBOL_H

@@ -26,7 +26,7 @@ BaseParser::BaseParser(std::unique_ptr<SymbolTable> symbolTable)
 //
 BaseParser::~BaseParser()
 {
-	m_pSymbolTable->dumpUnreferencedSymbolsAtCurrentLevel();
+	//m_pSymbolTable->dumpUnreferencedSymbolsAtCurrentLevel();
 }
 
 // the parser calls this method to report errors

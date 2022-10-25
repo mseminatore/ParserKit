@@ -50,8 +50,11 @@ public:
 	BaseParser(std::unique_ptr<SymbolTable> symbolTable);
 	virtual ~BaseParser();
 
-	unsigned getErrorCount()		{ return m_errorCount; }
-	unsigned getWarningCount()		{ return m_warningCount; }
+	unsigned getErrorCount() const		{ return m_errorCount; }
+	unsigned getWarningCount() const	{ return m_warningCount; }
+	void addWarningCount(int count)		{ m_warningCount += count;  }
+
+	virtual int reportUnreferencedSymbols() const { return m_pSymbolTable->dumpUnreferencedSymbolsAtCurrentLevel(); }
 
 	virtual int parseFile(const char *filename);
 	virtual int parseData(char *textToParse, const char *fileName, void *pUserData);
