@@ -24,9 +24,9 @@ myself the basics of parsing technology. Over many years I've used what I've
 learned to create useful data serialization formats, small scripting languages,
 assemblers, and compilers.
 
-Parsing concepts are difficult, and the technology still seems mystical to many.
-So I decided that I would share my library. I hope that this library is helpful to 
-others.
+Parsing concepts are sometimes difficult to learn and explain, and the technology
+still seems mystical to many. So I decided that I would share my library. I hope
+that this library is helpful to others.
 
 ## How can I learn more about parsing?
 
