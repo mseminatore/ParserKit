@@ -12,11 +12,14 @@
 //
 static TokenTable _tokenTable[] =
 {
-	{ "token",	TV_TOKEN },
-	{ "start",	TV_START },
-	{ "%%",		TV_PERCENTS},
-	{ "%{",		TV_PERCENT_LBRACE },
-	{ "%}",		TV_PERCENT_RBRACE },
+	{ "token",	  TV_TOKEN },
+	{ "start",	  TV_START },
+	{ "left",	  TV_LEFT },
+	{ "right",	  TV_RIGHT },
+	{ "nonassoc", TV_NONASSOC },
+	{ "%%",		  TV_PERCENTS},
+	{ "%{",		  TV_PERCENT_LBRACE },
+	{ "%}",		  TV_PERCENT_RBRACE },
 
 	{ nullptr,	TV_DONE }
 };
@@ -163,6 +166,37 @@ void BNFParser::DoTokens()
 			startSymbol = yylval.sym->lexeme;
 			match(TV_ID);
 			break;
+
+		case TV_LEFT:
+		case TV_RIGHT:
+		case TV_NONASSOC:
+		{
+			bool rightAssoc = (lookahead == TV_RIGHT);
+			bool nonAssoc   = (lookahead == TV_NONASSOC);
+			match(lookahead);
+
+			while (lookahead == TV_ID || lookahead == TV_CHARVAL)
+			{
+				std::string opName;
+
+				if (lookahead == TV_CHARVAL)
+				{
+					opName = std::string(1, yylval.char_val);
+					terminals.insert(opName);
+				}
+				else
+				{
+					opName = yylval.sym->lexeme;
+					tokens.insert(opName);
+					terminals.insert(opName);
+				}
+
+				m_operatorDecls[opName] = OperatorDecl{m_nextPrecLevel, rightAssoc, nonAssoc};
+				match(lookahead);
+			}
+			m_nextPrecLevel++;
+			break;
+		}
 		}
 	}
 }
@@ -184,40 +218,62 @@ void BNFParser::OutputSymbols()
 		fprintf(yyout, "\tTS_%s,\n", iter->c_str());
 	}
 
-	// output all the non-Terminals
-	fputs("\n\t// Non-Terminal symbols\n", yyout);
-	for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
+	if (!isPrattMode())
 	{
-		fprintf(yyout, "\tNTS_%s,\n", iter->c_str());
+		// output all the non-Terminals (only needed for LL(1) table)
+		fputs("\n\t// Non-Terminal symbols\n", yyout);
+		for (auto iter = nonTerminals.begin(); iter != nonTerminals.end(); iter++)
+		{
+			fprintf(yyout, "\tNTS_%s,\n", iter->c_str());
+		}
 	}
 
 	fputs("\tLAST_TOKEN\n", yyout);
 	fputs("};\n\n", yyout);
 
-	// output all the action symbols
-	fputs("// Action symbols\n", yyout);
-	fputs("enum {\n", yyout);
-	fputs("\tFIRST_ACTION = LAST_TOKEN,\n", yyout);
-
-	for (auto i = 0; i < productions.size(); i++)
+	if (!isPrattMode())
 	{
-		//if (productions[i].rhs.action != "")
+		// output all the action symbols (only needed for LL(1))
+		fputs("// Action symbols\n", yyout);
+		fputs("enum {\n", yyout);
+		fputs("\tFIRST_ACTION = LAST_TOKEN,\n", yyout);
+
+		for (auto i = 0; i < productions.size(); i++)
+		{
 			auto str = getRule(productions[i].lhs, productions[i].rhs);
 			fprintf(yyout, "\tACTION_%d,\t//%s\n", productions[i].rhs.actionIndex, str.c_str());
+		}
+
+		fputs("};\n\n", yyout);
 	}
 
-	fputs("};\n\n", yyout);
-
-	fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
-	fputs("protected:\n", yyhout);
-	fputs("\tstd::vector<std::pair<Symbols, YYSTYPE>> vs;\n\n", yyhout);
-	fputs("\tvoid initTable() override;\n", yyhout);
-	fputs("\tint yyrule(int rule) override;\n", yyhout);
-	fputs("\tint yyaction(int action) override;\n\n", yyhout);
-	fputs("\tvoid tokenMatch(int token) override\n\t{\n\t\tvs.push_back(std::make_pair(token, yylval));\n\t\tyylog(\"Pushed (%d, %f) onto the value stack: %zd\\n\", token, yylval, vs.size());\n\t}\n", yyhout);
-	fputs("\tvoid pop(int count) { for (int i = 0; i < count; i++) vs.pop_back(); yylog(\"\\nPopping %d items from value stack.\\n\", count); }", yyhout);
-	fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
-	fputs("};\n", yyhout);
+	if (isPrattMode())
+	{
+		// Pratt parser class declaration
+		fprintf(yyhout, "class %s : public PrattParser<YYSTYPE> {\n", outputFileName.c_str());
+		fputs("protected:\n", yyhout);
+		fputs("\tvoid initPrattTable() override;\n", yyhout);
+		fputs("\tYYSTYPE nud(int token, YYSTYPE val) override;\n", yyhout);
+		fputs("\tYYSTYPE led(int op, YYSTYPE left, YYSTYPE right) override;\n", yyhout);
+		fputs("public:\n", yyhout);
+		fprintf(yyhout, "\t%s(LexicalAnalyzer lex) : PrattParser<YYSTYPE>(lex, &yylval) {}\n", outputFileName.c_str());
+		fputs("\tint yyparse() override;\n", yyhout);
+		fputs("};\n", yyhout);
+	}
+	else
+	{
+		// LL(1) TableParser class declaration
+		fprintf(yyhout, "class %s : public TableParser {\n", outputFileName.c_str());
+		fputs("protected:\n", yyhout);
+		fputs("\tstd::vector<std::pair<Symbols, YYSTYPE>> vs;\n\n", yyhout);
+		fputs("\tvoid initTable() override;\n", yyhout);
+		fputs("\tint yyrule(int rule) override;\n", yyhout);
+		fputs("\tint yyaction(int action) override;\n\n", yyhout);
+		fputs("\tvoid tokenMatch(int token) override\n\t{\n\t\tvs.push_back(std::make_pair(token, yylval));\n\t\tyylog(\"Pushed (%d, %f) onto the value stack: %zd\\n\", token, yylval, vs.size());\n\t}\n", yyhout);
+		fputs("\tvoid pop(int count) { for (int i = 0; i < count; i++) vs.pop_back(); yylog(\"\\nPopping %d items from value stack.\\n\", count); }", yyhout);
+		fprintf(yyhout, "\npublic:\n\t%s(LexicalAnalyzer lexer) : TableParser(lexer) {}\n", outputFileName.c_str());
+		fputs("};\n", yyhout);
+	}
 }
 
 //
@@ -772,11 +828,25 @@ int BNFParser::yyparse()
 	
 	OutputProductions();
 
-	GenerateTable();
+	if (!isPrattMode())
+	{
+		GenerateTable();
+	}
+	else
+	{
+		DetectExprNonterminals();
+	}
 
 	OutputSymbols();
-	
-	OutputTable();
+
+	if (!isPrattMode())
+	{
+		OutputTable();
+	}
+	else
+	{
+		OutputPrattTable();
+	}
 
 	// copy tail of file to output
 	fputs("\n", yyout);
@@ -789,4 +859,218 @@ int BNFParser::yyparse()
 	m_lexer->copyToEOF(yyout);
 
 	return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Returns true when the production is an infix binary expression:
+//   X → X op X   where op is declared in %left / %right / %nonassoc
+// ---------------------------------------------------------------------------
+bool BNFParser::isInfixProduction(const Production& prod) const
+{
+	const auto& rhs = prod.rhs.symbols;
+	return rhs.size() == 3
+		&& rhs[0].type == SymbolType::Nonterminal && rhs[0].name == prod.lhs
+		&& rhs[2].type == SymbolType::Nonterminal && rhs[2].name == prod.lhs
+		&& m_operatorDecls.count(rhs[1].name) > 0;
+}
+
+// Returns the C++ token expression for a symbol: 'x' for char terminals,
+// TS_NAME for named terminals.
+std::string BNFParser::symbolTokenName(const Symbol& sym) const
+{
+	if (sym.type == SymbolType::CharTerminal)
+		return std::string("'") + sym.name + "'";
+	return "TS_" + sym.name;
+}
+
+// Returns the C++ token expression for an operator name.
+std::string BNFParser::opTokenName(const std::string& name) const
+{
+	if (name.length() == 1 && !isalnum((unsigned char)name[0]))
+		return std::string("'") + name + "'";
+	return "TS_" + name;
+}
+
+// ---------------------------------------------------------------------------
+// Identifies which non-terminals are "expression" non-terminals — those that
+// have at least one infix binary production (X → X op X).
+// ---------------------------------------------------------------------------
+void BNFParser::DetectExprNonterminals()
+{
+	for (const auto& prod : productions)
+	{
+		if (isInfixProduction(prod))
+			m_exprNonterminals.insert(prod.lhs);
+	}
+}
+
+// ---------------------------------------------------------------------------
+// OutputPrattTable — generates the three methods that make up a Pratt parser:
+//
+//   initPrattTable()  — populate m_infixBP from the %left/%right declarations
+//   nud(token, val)   — null denotation: prefix/atom cases
+//   led(op, l, r)     — left denotation: infix binary cases
+//   yyparse()         — entry point; drives parseExpr() and runs the start action
+// ---------------------------------------------------------------------------
+void BNFParser::OutputPrattTable()
+{
+	fprintf(yyout, "#include \"%s.h\"\n\n", outputFileName.c_str());
+
+	// --- initPrattTable() ---
+	fprintf(yyout, "void %s::initPrattTable() {\n", outputFileName.c_str());
+	for (const auto& kv : m_operatorDecls)
+	{
+		const auto& opName = kv.first;
+		const auto& decl   = kv.second;
+		int lbp = decl.level;
+		int rbp = decl.rightAssoc ? decl.level - 1 : decl.level;
+		fprintf(yyout, "\tm_infixBP[%s] = {%d, %d};\n",
+		        opTokenName(opName).c_str(), lbp, rbp);
+	}
+	fprintf(yyout, "}\n\n");
+
+	// --- nud() — handles atoms and prefix expressions ---
+	fprintf(yyout, "YYSTYPE %s::nud(int token, YYSTYPE val) {\n", outputFileName.c_str());
+	fprintf(yyout, "\tswitch (token) {\n");
+
+	for (const auto& prod : productions)
+	{
+		if (!m_exprNonterminals.count(prod.lhs) || isInfixProduction(prod))
+			continue;
+
+		const auto& rhs = prod.rhs.symbols;
+		if (rhs.empty())
+			continue;  // epsilon — not representable in nud
+
+		const auto& first = rhs[0];
+		fprintf(yyout, "\tcase %s:\n\t{\n", symbolTokenName(first).c_str());
+
+		// Parse remaining symbols (indices 1 .. rhs.size()-1)
+		for (size_t k = 1; k < rhs.size(); k++)
+		{
+			const auto& sym = rhs[k];
+			if (sym.type == SymbolType::Nonterminal && m_exprNonterminals.count(sym.name))
+			{
+				fprintf(yyout, "\t\tYYSTYPE s%zu = parseExpr(0);\n", k + 1);
+			}
+			else
+			{
+				// structural terminal — match and discard
+				fprintf(yyout, "\t\tmatchToken(%s);\n", symbolTokenName(sym).c_str());
+			}
+		}
+
+		if (!prod.rhs.action.empty())
+		{
+			std::string action = prod.rhs.action;
+			replace(action, "$$", "_result");
+			replace(action, "$1", "val");
+			for (size_t k = 2; k <= rhs.size(); k++)
+			{
+				char from[16], to[16];
+				snprintf(from, sizeof(from), "$%zu", k);
+				snprintf(to,   sizeof(to),   "s%zu", k);
+				replace(action, from, to);
+			}
+			fprintf(yyout, "\t\tYYSTYPE _result = YYSTYPE{};\n");
+			fprintf(yyout, "\t\t%s\n", action.c_str());
+			fprintf(yyout, "\t\treturn _result;\n");
+		}
+		else
+		{
+			fprintf(yyout, "\t\treturn val;\n");
+		}
+
+		fprintf(yyout, "\t}\n");
+	}
+
+	fprintf(yyout, "\tdefault:\n");
+	fprintf(yyout, "\t\tyyerror(\"unexpected token in expression\");\n");
+	fprintf(yyout, "\t\treturn YYSTYPE{};\n");
+	fprintf(yyout, "\t}\n}\n\n");
+
+	// --- led() — handles infix binary expressions ---
+	fprintf(yyout, "YYSTYPE %s::led(int op, YYSTYPE left, YYSTYPE right) {\n", outputFileName.c_str());
+	fprintf(yyout, "\tswitch (op) {\n");
+
+	for (const auto& prod : productions)
+	{
+		if (!m_exprNonterminals.count(prod.lhs) || !isInfixProduction(prod))
+			continue;
+
+		const auto& op = prod.rhs.symbols[1];
+		fprintf(yyout, "\tcase %s:\n\t{\n", symbolTokenName(op).c_str());
+
+		if (!prod.rhs.action.empty())
+		{
+			std::string action = prod.rhs.action;
+			replace(action, "$$", "_result");
+			replace(action, "$1", "left");
+			replace(action, "$3", "right");
+			replace(action, "$2", "(YYSTYPE)op");
+			fprintf(yyout, "\t\tYYSTYPE _result = YYSTYPE{};\n");
+			fprintf(yyout, "\t\t%s\n", action.c_str());
+			fprintf(yyout, "\t\treturn _result;\n");
+		}
+		else
+		{
+			fprintf(yyout, "\t\treturn left;\n");
+		}
+
+		fprintf(yyout, "\t}\n");
+	}
+
+	fprintf(yyout, "\tdefault:\n");
+	fprintf(yyout, "\t\tyyerror(\"unknown operator\");\n");
+	fprintf(yyout, "\t\treturn YYSTYPE{};\n");
+	fprintf(yyout, "\t}\n}\n\n");
+
+	// --- yyparse() — drives the parse from the start symbol ---
+	fprintf(yyout, "int %s::yyparse() {\n", outputFileName.c_str());
+	fprintf(yyout, "\tinitPrattTable();\n");
+	fprintf(yyout, "\tadvance();\n");
+
+	// Find the first production for the start symbol and generate its body
+	for (const auto& prod : productions)
+	{
+		if (prod.lhs != startSymbol)
+			continue;
+
+		const auto& rhs = prod.rhs.symbols;
+
+		for (size_t k = 0; k < rhs.size(); k++)
+		{
+			const auto& sym = rhs[k];
+			if (sym.type == SymbolType::Nonterminal && m_exprNonterminals.count(sym.name))
+			{
+				fprintf(yyout, "\tYYSTYPE s%zu = parseExpr(0);\n", k + 1);
+			}
+			else if (sym.type == SymbolType::CharTerminal)
+			{
+				fprintf(yyout, "\tmatchToken('%s');\n", sym.name.c_str());
+			}
+			else
+			{
+				fprintf(yyout, "\tmatchToken(TS_%s);\n", sym.name.c_str());
+			}
+		}
+
+		if (!prod.rhs.action.empty())
+		{
+			std::string action = prod.rhs.action;
+			for (size_t k = 1; k <= rhs.size(); k++)
+			{
+				char from[16], to[16];
+				snprintf(from, sizeof(from), "$%zu", k);
+				snprintf(to,   sizeof(to),   "s%zu", k);
+				replace(action, from, to);
+			}
+			replace(action, "$$", "_result");
+			fprintf(yyout, "\t%s\n", action.c_str());
+		}
+
+		break;  // only the first start-symbol production
+	}
+
+	fprintf(yyout, "\treturn 0;\n}\n\n");
 }

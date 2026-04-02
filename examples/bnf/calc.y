@@ -9,31 +9,23 @@ YYSTYPE yylval;
 
 %token NUMBER
 
-%%
-
-expr: term expr_tail { $$ = $1; printf("Result is %4f\n", $$); }
-    ;
-
-expr_tail:
-    | '+' term expr_tail { $< = $< + $2; }
-    | '-' term expr_tail { $< = $< - $2; }
-    ;
-
-term: factor term_tail
-    ;
-
-term_tail:
-    | '*' factor term_tail { $< = $< * $2; }
-    | '/' factor term_tail { $< = $< / $2; }
-    ;
-
-factor: NUMBER
-    |'(' expr ')' { $$ = $2; }
-    ;
+%left  '+' '-'
+%left  '*' '/'
 
 %%
 
-int lineno = 1;
+calc: expr   { printf("Result is %f\n", $1); }
+    ;
+
+expr: NUMBER
+    | '(' expr ')'  { $$ = $2; }
+    | expr '+' expr { $$ = $1 + $3; }
+    | expr '-' expr { $$ = $1 - $3; }
+    | expr '*' expr { $$ = $1 * $3; }
+    | expr '/' expr { $$ = $1 / $3; }
+    ;
+
+%%
 
 int yylex()
 {
@@ -54,9 +46,6 @@ int yylex()
         return TS_NUMBER;
     }
 
-//    if (c == '\n')
-//        lineno++;
-
     return c;
 }
 
@@ -68,7 +57,7 @@ int main(int argc, char *argv[])
 //	parser.setDebug(true);
 	parser.yyparse();
 
-	printf("Succesful parse.\n");
+	printf("Successful parse.\n");
 	
 	return 0;
 }

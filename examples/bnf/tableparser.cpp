@@ -83,7 +83,11 @@ void TableParser::yylog(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
+#ifdef _WIN32
 	vsprintf_s(buf, fmt, argptr);
+#else
+	vsnprintf(buf, sizeof(buf), fmt, argptr);
+#endif
 	va_end(argptr);
 
 	fputs(buf, YYLOG);

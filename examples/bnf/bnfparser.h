@@ -62,17 +62,43 @@ protected:
 	using TerminalSets = std::map<std::string, std::set<std::string>>;
 	TerminalSets first, follow;
 
+	// --- Operator precedence ---
+	struct OperatorDecl
+	{
+		int  level;       // binding power level (higher = tighter)
+		bool rightAssoc;  // true for %right
+		bool nonAssoc;    // true for %nonassoc
+	};
+	std::map<std::string, OperatorDecl> m_operatorDecls;
+	int m_nextPrecLevel = 1;
+
+	// Set of non-terminals that are handled by Pratt parsing
+	std::set<std::string> m_exprNonterminals;
+
+	bool isPrattMode() const { return !m_operatorDecls.empty(); }
+
+	// --- LL(1) methods ---
 	void ComputeNullable();
 	void ComputeFirst();
 	void ComputeFollow();
 
 	void GenerateTable();
-	
+
+	// --- Code generation ---
 	void OutputSymbols();
 	void OutputProductions();
 	void OutputTable();
 	void TemplateReplace(std::string &str, size_t symbolCount);
 
+	// --- Pratt methods ---
+	void DetectExprNonterminals();
+	void OutputPrattTable();
+
+	bool isInfixProduction(const Production& prod) const;
+	std::string symbolTokenName(const Symbol& sym) const;
+	std::string opTokenName(const std::string& name) const;
+
+	// ---
 	bool AreAllNullable(size_t start, size_t end, const SymbolList &symbols);
 	std::string getRule(const std::string &lhs, RightHandSide &rhs);
 
