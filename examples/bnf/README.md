@@ -12,6 +12,29 @@ jumping into this example.
 >This example is very complicated. It is primarily intended to show more
 >of the range of what can be done with the `ParserKit` library.
 
+## Grammar files included
+
+| File | Mode | Description |
+|------|------|-------------|
+| `calc.y` | Pratt | Four-function calculator with operator precedence |
+| `json.y` | LL(1) | JSON parser (objects, arrays, strings, numbers, keywords) |
+| `yaml.y` | LL(1) | YAML parser (block + flow mappings/sequences, all scalar types) |
+
+## More grammar ideas
+
+These formats would make good additional examples and highlight different
+aspects of the tool:
+
+| Grammar | Mode | Why it's interesting |
+|---------|------|----------------------|
+| `ini.y` | LL(1) | Classic `[section]` + `key=value` format; minimal grammar, great for beginners |
+| `csv.y` | LL(1) | RFC 4180 fields and records; shows quoted-field disambiguation |
+| `toml.y` | LL(1) | Typed values, arrays, inline tables; richer LL(1) than ini |
+| `dot.y` | LL(1) | GraphViz DOT language; node/edge declarations, attribute lists |
+| `logfmt.y` | LL(1) | `key=value` structured log format used by many Go/cloud services |
+| `calc2.y` | Pratt | Extended calculator: unary minus, `^` (right-assoc power), `sin`/`cos` calls |
+| `regex.y` | Pratt | Regex subset: `\|` (alternation), concat, `*` / `+` / `?` as Pratt operators |
+
 ## Operator Precedence
 
 The generator supports two output modes depending on whether the grammar

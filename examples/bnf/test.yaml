@@ -1,0 +1,29 @@
+# YAML parser demo - exercises both block and flow styles
+
+name: ParserKit
+version: 1
+rating: 4.5
+active: true
+description: "A C++ parser library"
+nothing: null
+
+features:
+  - lexical analysis
+  - symbol tables
+  - recursive descent
+  - LL1 table driven
+
+authors:
+  - name: Mark
+    role: creator
+
+config:
+  debug: false
+  output: stdout
+  limits:
+    max_errors: 10
+    max_warnings: 100
+
+tags: [parsing, cpp, library]
+
+metadata: {created: 2024, license: MIT}
