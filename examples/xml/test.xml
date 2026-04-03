@@ -1,4 +1,7 @@
 <document>
     <br/>
     <button OnClick="btnClick" id="OKButton">OK</button>
+    <button OnClick="btnClick" id="CancelButton">Cancel</button>
+    <text> Lorem ipsom
+    </text>
 </document>
