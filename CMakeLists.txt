@@ -4,11 +4,6 @@ project(ParserKit CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Suppress MSVC secure CRT deprecation warnings project-wide
-if(MSVC)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-endif()
-
 # ParserKit static library
 add_library(ParserKit STATIC
     lexer.cpp
