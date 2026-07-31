@@ -9,6 +9,7 @@
 #else
 #	include <libgen.h>
 #	include <unistd.h>
+#	include <limits.h>
 #	define _chdir chdir
 #endif
 
