@@ -1,14 +1,14 @@
 TARGET	= libParserKit.lib
-LINKER	= cc -o
 OBJS	= lexer.o baseparser.o symboltable.o
+CXX	= c++
 CFLAGS	= -Wc++11-extensions -std=c++11
+AR	= ar rcs
 
-$(OBJS):	lexer.cpp baseparser.cpp symboltable.cpp
-	$(CC) $< $(CFLAGS)
+%.o:	%.cpp
+	$(CXX) -c $(CFLAGS) -o $@ $<
 
 $(TARGET):	$(OBJS)
-	$(LINKER) $(TARGET) $(CFLAGS) $(OBJS)
+	$(AR) $(TARGET) $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(TARGET)
-	

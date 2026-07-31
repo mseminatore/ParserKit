@@ -6,9 +6,9 @@
 #include <string>
 #include "symboltable.h"
 
+//======================================================================
 //
-//
-//
+//======================================================================
 static const char *_typeStrings[] = 
 {
 	"undef", 
@@ -24,9 +24,9 @@ static const char *_typeStrings[] =
 // ensure that the array matches the enumeration
 static_assert(ARRAY_SIZE(_typeStrings) == stNumSymbolTypes, "array size mismatch");
 
+//======================================================================
 //
-//
-//
+//======================================================================
 SymbolTable::SymbolTable()
 {
 	// add the first level to the table
@@ -52,9 +52,9 @@ void SymbolTable::pop()
 	assert(m_symbolTable.size() >= 0);
 }
 
+//======================================================================
 //
-//
-//
+//======================================================================
 SymbolEntry *SymbolTable::getFirstGlobal()
 {
 	stack_iterator iter = m_symbolTable.begin();
@@ -62,9 +62,9 @@ SymbolEntry *SymbolTable::getFirstGlobal()
 	return &m_globalIter->second;
 }
 
+//======================================================================
 //
-//
-//
+//======================================================================
 SymbolEntry *SymbolTable::getNextGlobal()
 {
 	m_globalIter++;
@@ -76,16 +76,18 @@ SymbolEntry *SymbolTable::getNextGlobal()
 	return &m_globalIter->second;
 }
 
+//======================================================================
 //
-//
-//
+//======================================================================
 const char *SymbolTable::getTypeName(SymbolType st)
 {
 	assert(st < stNumSymbolTypes);
 	return _typeStrings[st];
 }
 
+//======================================================================
 //
+//======================================================================
 void SymbolTable::dumpContents()
 {
 	char szText[256];
@@ -173,6 +175,9 @@ SymbolEntry *SymbolTable::install(const char *lexeme, SymbolType type)
 	return &(result.first->second);
 }
 
+//======================================================================
+//
+//======================================================================
 const char *SymbolTable::getTypeString(int type)
 {
 	if (type <= stUser)
@@ -181,7 +186,9 @@ const char *SymbolTable::getTypeString(int type)
 	return _typeStrings[stUser];
 }
 
-//
+//======================================================================
+// 
+//======================================================================
 int SymbolTable::dumpUnreferencedSymbolsAtCurrentLevel()
 {
 	SymbolMap::iterator iter;
