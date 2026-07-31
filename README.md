@@ -125,7 +125,7 @@ An entry in the symbol table:
 | `global` | `bool` | Whether this is a global symbol |
 
 ### `Position`
-Captures a source location for precise error reporting:
+Captures a source location for error reporting:
 
 ```cpp
 Position pos(srcFile, srcLine, srcColumn);
