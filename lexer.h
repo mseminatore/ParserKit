@@ -8,6 +8,10 @@
 #include <map>
 #include <memory>
 #include <stdio.h>
+#include <cstring>
+#ifndef _WIN32
+#  include <strings.h>   // strcasecmp on Linux/macOS
+#endif
 
 struct SymbolEntry;
 class BaseParser;
