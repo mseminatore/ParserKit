@@ -143,6 +143,9 @@ TV_USER     – start of user-defined tokens
 | `examples/json/` | JSON parser (`JSONParser` + `JSONValue` AST) |
 | `examples/xml/`  | XML parser (`XMLParser`) |
 | `examples/bnf/`  | Yacc-style table-driven parser generator; also shows a custom lexer subclass (`BNFLexer`) and Pratt-style operator precedence |
-| `examples/yaml/` | YAML parser (`YAMLParser` + `YAMLValue` AST) |
+| `examples/yaml/` | YAML parser (`YAMLParser` + `YAMLValue` AST); custom lexer subclass (`YAMLLexer`) overrides `yylex()` for indentation |
+| `examples/ini/`  | INI config parser (`IniParser`); demonstrates scoped `SymbolTable` via `push()`/`pop()` per `[section]` |
+| `examples/script/` | Tiny scripting language (`ScriptParser`); demonstrates `pushFile()` file inclusion, `parseData()`, and an overridden `yyerror()` with panic-mode error recovery |
+| `examples/calc/` | Calculator (`CalcParser`); hand-written Pratt/precedence-climbing built directly on `BaseParser`, as opposed to `examples/bnf`'s generated `PrattParser<T>` |
 
 Full API reference (method-by-method) lives in `README.md` — consult it for exhaustive `LexicalAnalyzer`/`BaseParser`/`SymbolTable` method signatures beyond what's summarized above.

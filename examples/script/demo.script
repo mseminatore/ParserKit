@@ -1,0 +1,10 @@
+// demo.script — used by the ParserKit "script" example
+
+include "lib.script";
+
+radius = 2 + e;
+area = pi * radius * radius;
+
+print area;
+print -area;
+print (1 + 2) * 3;

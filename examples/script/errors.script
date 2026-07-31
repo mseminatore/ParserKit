@@ -1,0 +1,13 @@
+// errors.script — deliberately contains multiple independent errors, to
+// show that ScriptParser::yyerror() reports every one of them instead of
+// exiting on the first (the library's default behavior)
+
+x = 1 + 2;
+print x;
+
+y = 5 / 0;
+
+print undefined_variable;
+
+z = 4 * 4;
+print z;

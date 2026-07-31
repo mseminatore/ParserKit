@@ -341,3 +341,6 @@ Name | Description
 [xml](/examples/xml) | A basic XML parser
 [bnf](/examples/bnf) | Example of a Yacc-like table-driven LL(1) parser generator
 [yaml](/examples/yaml) | A YAML parser
+[ini](/examples/ini) | An INI config parser, using a scoped `SymbolTable` (`push()`/`pop()`) per `[section]`
+[script](/examples/script) | A tiny scripting language demonstrating `#include`-style file inclusion (`pushFile()`), in-memory parsing (`parseData()`), and a custom `yyerror()` override with error recovery
+[calc](/examples/calc) | A calculator implementing Pratt-style precedence climbing by hand, directly against `BaseParser`

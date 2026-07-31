@@ -1,0 +1,4 @@
+// lib.script — included by demo.script; demonstrates that included files
+// share the same statement stream as the includer
+pi = 3.14159;
+e = 0x2;  // hex literal, evaluates to 2
