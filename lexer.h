@@ -3,9 +3,12 @@
 #ifndef __LEXER_H
 #define __LEXER_H
 
-//
-// forward declarations
-//
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
+#include <stdio.h>
+
 struct SymbolEntry;
 class BaseParser;
 

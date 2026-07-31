@@ -53,3 +53,12 @@
 /examples/bnf/jsonparser.cpp
 /examples/bnf/jsonparser.h
 
+# CMake build directory
+/build/
+
+# Example executables (built by makefile)
+/json
+/xml
+/bnf
+/yaml
+

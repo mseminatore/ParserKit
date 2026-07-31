@@ -435,16 +435,16 @@ void BNFParser::TemplateReplace(std::string &str, size_t symbolCount)
 {
 	char buf[256], buf2[256];
 
-	sprintf(buf, "vs[vs.size() - %d].second", (int)symbolCount + 1);
+	snprintf(buf, sizeof(buf), "vs[vs.size() - %d].second", (int)symbolCount + 1);
 	replace(str, "$$", buf);
 
-	sprintf(buf, "vs[vs.size() - %d].second", (int)symbolCount + 2);
+	snprintf(buf, sizeof(buf), "vs[vs.size() - %d].second", (int)symbolCount + 2);
 	replace(str, "$<", buf);
 
 	for (auto i = 1; i <= symbolCount; i++)
 	{
-		sprintf(buf, "$%d", i);
-		sprintf(buf2, "vs[vs.size() - %d].second", (int)(1 + symbolCount - i));
+		snprintf(buf, sizeof(buf), "$%d", i);
+		snprintf(buf2, sizeof(buf2), "vs[vs.size() - %d].second", (int)(1 + symbolCount - i));
 		replace(str, buf, buf2);
 	}
 }
@@ -458,7 +458,7 @@ std::string BNFParser::getRule(const std::string &lhs, RightHandSide &rhs)
 
 	for (auto i = rhs.symbols.begin(); i != rhs.symbols.end(); i++)
 	{
-		char *prefix = "", *postfix = "";
+		const char *prefix = "", *postfix = "";
 
 		if (i->type == SymbolType::CharTerminal)
 		{
@@ -493,7 +493,7 @@ void BNFParser::OutputTable()
 	{
 		for (auto item = entry->second.begin(); item != entry->second.end(); item++)
 		{
-			char *prefix = "TS_", *postfix = "";
+			const char *prefix = "TS_", *postfix = "";
 			auto sym = m_pSymbolTable->lookup(item->first.c_str());
 			if (!sym)
 			{
@@ -544,7 +544,7 @@ void BNFParser::OutputTable()
 
 			for (auto i = t->second.symbols.rbegin(); i != t->second.symbols.rend(); i++)
 			{
-				char *prefix = "TS_", *postfix = "";
+				const char *prefix = "TS_", *postfix = "";
 
 				if (i->type == SymbolType::Nonterminal)
 					prefix = "NTS_";

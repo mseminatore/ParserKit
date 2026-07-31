@@ -92,7 +92,7 @@ void XMLParser::DoEntity()
 	DoMarkup();
 
 	if (entityName != yylval.sym->lexeme)
-		yyerror("incorrect or missing end tag: %s", entityName);
+		yyerror("incorrect or missing end tag: %s", entityName.c_str());
 
 	match(TV_ID);
 	match('>');

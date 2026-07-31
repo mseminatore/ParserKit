@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <cstring>
 
 struct JSONArray;
 struct JSONObject;
@@ -23,23 +24,61 @@ struct JSONValue
 		std::unique_ptr<JSONObject> o;
 	};
 
-	JSONValue() : s(), o(), a() {
-		value_type = ValueType::None;
+	JSONValue() : value_type(ValueType::None) {
+		// Zero-initialize union storage.
+		// A zero-bit std::string is a valid empty SSO string in libc++.
+		// A zero-bit unique_ptr is a valid null unique_ptr.
+		std::memset((void*)&s, 0, sizeof(s));
 	}
 
-	virtual ~JSONValue() {};
+	virtual ~JSONValue() {
+		switch (value_type) {
+			case ValueType::String:  s.~basic_string<char>(); break;
+			case ValueType::Object:  o.~unique_ptr<JSONObject>(); break;
+			case ValueType::Array:   a.~unique_ptr<JSONArray>(); break;
+			default: break;
+		}
+	}
 
 	// not copyable
-	JSONValue(JSONValue&) = delete;
-	JSONValue &operator=(JSONValue&) = delete;
+	JSONValue(const JSONValue&) = delete;
+	JSONValue &operator=(const JSONValue&) = delete;
 
-	// only movable
-	JSONValue(JSONValue&&) = default;
-	JSONValue &operator=(JSONValue&&) = default;
+	// movable
+	JSONValue(JSONValue&& other) noexcept : value_type(other.value_type) {
+		switch (value_type) {
+			case ValueType::String:
+				new (&s) std::string(std::move(other.s));
+				other.s.~basic_string<char>();
+				break;
+			case ValueType::Object:
+				new (&o) std::unique_ptr<JSONObject>(std::move(other.o));
+				other.o.~unique_ptr<JSONObject>();
+				break;
+			case ValueType::Array:
+				new (&a) std::unique_ptr<JSONArray>(std::move(other.a));
+				other.a.~unique_ptr<JSONArray>();
+				break;
+			case ValueType::Boolean: b = other.b; break;
+			case ValueType::Number:  n = other.n; break;
+			default: break;
+		}
+		other.value_type = ValueType::None;
+		std::memset((void*)&other.s, 0, sizeof(other.s));
+	}
+
+	JSONValue &operator=(JSONValue&& other) noexcept {
+		if (this != &other) {
+			this->~JSONValue();
+			new (this) JSONValue(std::move(other));
+		}
+		return *this;
+	}
 
 	void dumpAll();
 	void dump();
 };
+
 
 struct JSONArray
 {

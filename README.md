@@ -54,5 +54,5 @@ Name | Description
 ---- | -----------
 [json](/examples/json) | A simple JSON parser
 [xml](/examples/xml) | A basic XML parser
-[bnf](/examples/bnf) | Simple Yacc-like table-driven parser generator
-[yaml](/examples/yaml) | YAML parser (not yet started)
+[bnf](/examples/bnf) | Example of a Yacc-like table-driven LL(1) parser generator
+[yaml](/examples/yaml) | A YAML parser
