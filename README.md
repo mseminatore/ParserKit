@@ -21,14 +21,14 @@ to make creating your own parsers a more practical exercise. It includes classes
 ## Why create this library?
 
 I have always been fascinated by the concepts behind compilers and 
-interpreters. I gathered knowledge where and when I could and over time taught
-myself the basics of parsing technology. Over many years I've used what I've 
-learned to create useful data serialization formats, small scripting languages,
+interpreters. Over time, I gathered knowledge where and when I could and over time taught
+myself the fundamentals of parsing technology. I've used what I've 
+learned to create several data serialization formats, small scripting languages,
 assemblers, and compilers.
 
-Parsing concepts are sometimes difficult to learn and explain, and the technology
-still seems mystical to many. So I decided that I would share my library. I hope
-that this library is helpful to others.
+Because parsing concepts can be difficult to learn and explain, and the technology
+still seems mystical to many. I decided to share this library in the hope
+that it may be helpful to others.
 
 ## How can I learn more about parsing?
 
