@@ -1,5 +1,7 @@
 # ParserKit
 
+[![CI](https://github.com/mseminatore/ParserKit/actions/workflows/ci.yml/badge.svg)](https://github.com/mseminatore/ParserKit/actions/workflows/ci.yml)
+
 A simple, modern C++ library for creating top-down recursive-descent predictive
 parsers for LL(1) grammars.
 
