@@ -101,9 +101,9 @@ void SymbolTable::dumpContents()
 		for (; iter != (*riter).end(); iter++)
 		{
 			if (iter->second.type == stInteger)
-				sprintf(szText, "%s\t(%u, 0x%08X)\n", iter->first.c_str(), iter->second.ival, iter->second.ival);
+				snprintf(szText, sizeof(szText), "%s\t(%u, 0x%08X)\n", iter->first.c_str(), iter->second.ival, iter->second.ival);
 			else
-				sprintf(szText, "%s\t%f\n", iter->first.c_str(), iter->second.fval);
+				snprintf(szText, sizeof(szText), "%s\t%f\n", iter->first.c_str(), iter->second.fval);
 
 			puts(szText);
 		}

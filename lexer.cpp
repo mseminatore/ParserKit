@@ -129,7 +129,7 @@ const char *LexicalAnalyzer::getLexemeFromToken(int token)
 {
 	// look for single char tokens
 	if (token < 256)
-		return (char*)token;
+		return (char*)(intptr_t)token;
 
 	// look for internal tokens
 	if (token > 255 && token < TV_USER)

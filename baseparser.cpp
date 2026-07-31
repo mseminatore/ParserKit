@@ -36,10 +36,10 @@ void BaseParser::yyerror(const Position &pos, const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf(buf, fmt, argptr);
+		vsnprintf(buf, sizeof(buf), fmt, argptr);
 	va_end(argptr);
 
-	sprintf(s, "%s(%d) : error near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
+	snprintf(s, sizeof(s), "%s(%d) : error near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
 
 	m_errorCount++;
 
@@ -54,10 +54,10 @@ void BaseParser::yyerror(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf(buf, fmt, argptr);
+		vsnprintf(buf, sizeof(buf), fmt, argptr);
 	va_end(argptr);
 
-	sprintf(s, "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
+	snprintf(s, sizeof(s), "%s(%d) : error near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
 	m_errorCount++;
 
@@ -72,10 +72,10 @@ void BaseParser::yywarning(const Position &pos, const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf(buf, fmt, argptr);
+		vsnprintf(buf, sizeof(buf), fmt, argptr);
 	va_end(argptr);
 
-	sprintf(s, "%s(%d) : warning near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
+	snprintf(s, sizeof(s), "%s(%d) : warning near column %d: %s\r\n", pos.srcFile.c_str(), pos.srcLine, pos.srcColumn, buf);
 
 	m_warningCount++;
 
@@ -90,10 +90,10 @@ void BaseParser::yywarning(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf(buf, fmt, argptr);
+		vsnprintf(buf, sizeof(buf), fmt, argptr);
 	va_end(argptr);
 
-	sprintf(s, "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
+	snprintf(s, sizeof(s), "%s(%d) : warning near column %d: %s\r\n", m_lexer->getFile().c_str(), m_lexer->getLineNumber(), m_lexer->getColumn(), buf);
 
 	m_warningCount++;
 
@@ -111,7 +111,7 @@ void BaseParser::yylog(const char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-		vsprintf(buf, fmt, argptr);
+		vsnprintf(buf, sizeof(buf), fmt, argptr);
 	va_end(argptr);
 
 	puts(buf);
