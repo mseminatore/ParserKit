@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(ParserKit CXX)
 
+enable_testing()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -29,3 +31,4 @@ add_subdirectory(examples/yaml)
 add_subdirectory(examples/ini)
 add_subdirectory(examples/script)
 add_subdirectory(examples/calc)
+add_subdirectory(tests)

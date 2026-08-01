@@ -46,6 +46,7 @@
 
 # test files
 *.bnf
+runtests
 
 # Sample generated files
 /examples/bnf/calc.cpp

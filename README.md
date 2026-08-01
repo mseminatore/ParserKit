@@ -60,6 +60,20 @@ cmake -B build && cmake --build build
 
 ---
 
+## Testing
+
+ParserKit has a small unit test suite under `tests/`, built on [testy](https://github.com/mseminatore/testy), covering `LexicalAnalyzer`, `SymbolTable`, and `BaseParser`.
+
+```bash
+# Makefile
+make test
+
+# CMake
+cmake -B build && cmake --build build && ctest --test-dir build --output-on-failure
+```
+
+---
+
 ## Token Types
 
 Predefined token values returned by `yylex()`:

@@ -1,6 +1,7 @@
 TARGET	= libParserKit.lib
 OBJS	= lexer.o baseparser.o symboltable.o
 CXX	= c++
+CC	= cc
 CFLAGS	= -Wc++11-extensions -std=c++11
 CFLAGS14 = -Wc++11-extensions -std=c++14
 AR	= ar rcs
@@ -18,7 +19,12 @@ CALC_SRCS   = examples/calc/calc.cpp examples/calc/calcparser.cpp
 
 EXAMPLES   = json xml bnf yaml ini script calc
 
-.PHONY: all examples clean $(EXAMPLES)
+# Test suite sources (testy framework, vendored under tests/testy)
+TESTS_SRCS  = tests/test_runner.cpp tests/test_symboltable.cpp tests/test_lexer.cpp tests/test_baseparser.cpp
+TESTS_C_OBJ = tests/testy/test_main.o
+TEST_INCLUDES = -I. -Itests
+
+.PHONY: all examples clean test $(EXAMPLES)
 
 all: $(TARGET) examples
 
@@ -51,5 +57,14 @@ script: $(TARGET)
 calc: $(TARGET)
 	$(CXX) $(CFLAGS14) $(EXAMPLE_INCLUDES) $(CALC_SRCS) $(TARGET) -o calc
 
+tests/testy/test_main.o: tests/testy/test_main.c
+	$(CC) -c $(TEST_INCLUDES) -o $@ $<
+
+runtests: $(TARGET) $(TESTS_C_OBJ)
+	$(CXX) $(CFLAGS14) $(TEST_INCLUDES) $(TESTS_SRCS) $(TESTS_C_OBJ) $(TARGET) -o runtests
+
+test: runtests
+	./runtests
+
 clean:
-	rm -f $(OBJS) $(TARGET) $(EXAMPLES)
+	rm -f $(OBJS) $(TARGET) $(EXAMPLES) $(TESTS_C_OBJ) runtests
